@@ -11,10 +11,8 @@ import { getMe, getDiscordGuilds } from '../api'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function guildIcon(guild) {
-  if (guild.icon) {
-    const isAnimated = guild.icon.startsWith('a_')
-    return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${isAnimated ? 'gif' : 'png'}?size=512`
-  }
+  if (guild.icon)
+    return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.webp?size=512`
   return null
 }
 
