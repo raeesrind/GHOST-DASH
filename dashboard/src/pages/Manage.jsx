@@ -8,62 +8,75 @@ import {
   Gift, Gamepad2, Wrench, ArrowLeft, Search,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { getMe, getGuilds, getCommands, updateCommand, updatePrefix, getGuild, getBotStatus,
-         getActionLog, saveActionLog, getGuildChannels, getGuildRoles, getGuildEmojis,
-         getAutoMod, saveAutoMod, getModerationSettings, saveModerationSettings,
-         getWelcomer, saveWelcomer,
-         getCustomCommands, createCustomCommand, deleteCustomCommand, toggleCustomCommand,
-         getAutoResponders, saveAutoResponder, deleteAutoResponder, toggleAutoResponder,
-         getGiveaways, getGiveawaySettings, saveGiveawaySettings, endGiveaway, deleteGiveaway,
-         getReactionRoles, saveReactionRole, deleteReactionRole, postReactionRole } from '../api'
+import {
+  getMe, getGuilds, getCommands, updateCommand, updatePrefix, getGuild, getBotStatus,
+  getActionLog, saveActionLog, getGuildChannels, getGuildRoles, getGuildEmojis,
+  getAutoMod, saveAutoMod, getModerationSettings, saveModerationSettings,
+  getWelcomer, saveWelcomer,
+  getCustomCommands, createCustomCommand, deleteCustomCommand, toggleCustomCommand,
+  getAutoResponders, saveAutoResponder, deleteAutoResponder, toggleAutoResponder,
+  getGiveaways, getGiveawaySettings, saveGiveawaySettings, endGiveaway, deleteGiveaway,
+  getReactionRoles, saveReactionRole, deleteReactionRole, postReactionRole,
+  getMemberCheck
+} from '../api'
 import Toggle from '../components/Toggle'
 import StatCard from '../components/StatCard'
 import { ALL_COMMANDS, CATEGORIES } from '../data/commands'
 
 const MODULES = [
-  { section: 'General', items: [
-    { id: 'overview',  label: 'Overview',  icon: LayoutDashboard },
-    { id: 'commands',  label: 'Commands',  icon: Terminal        },
-    { id: 'settings',  label: 'Settings',  icon: Settings        },
-  ]},
-  { section: 'Moderation', items: [
-    { id: 'moderation', label: 'Moderation', icon: Shield       },
-    { id: 'automod',    label: 'Auto Mod',   icon: Zap          },
-    { id: 'logs',       label: 'Action Log',  icon: MessageSquare},
-  ]},
-  { section: 'Engagement', items: [
-    { id: 'leveling',  label: 'Leveling',  icon: Star    },
-    { id: 'welcomer',  label: 'Welcomer',  icon: Users   },
-    { id: 'giveaways', label: 'Giveaways', icon: Gift    },    { id: 'fun',       label: 'Fun',       icon: Gamepad2},
-  ]},
-  { section: 'Utility', items: [
-    { id: 'customcmds',    label: 'Custom Commands', icon: Terminal    },
-    { id: 'autoresponder', label: 'Auto Responder',  icon: MessageSquare },
-    { id: 'reactionroles', label: 'Reaction Roles',  icon: Crown       },
-    { id: 'roles',    label: 'Roles',    icon: Crown  },
-    { id: 'channels', label: 'Channels', icon: Hash   },
-    { id: 'utility',  label: 'Utility',  icon: Wrench },
-  ]},
-  { section: 'Analytics', items: [
-    { id: 'stats',  label: 'Statistics', icon: BarChart2},
-    { id: 'status', label: 'Bot Status', icon: Activity },
-  ]},
+  {
+    section: 'General', items: [
+      { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+      { id: 'commands', label: 'Commands', icon: Terminal },
+      { id: 'settings', label: 'Settings', icon: Settings },
+    ]
+  },
+  {
+    section: 'Moderation', items: [
+      { id: 'moderation', label: 'Moderation', icon: Shield },
+      { id: 'automod', label: 'Auto Mod', icon: Zap },
+      { id: 'logs', label: 'Action Log', icon: MessageSquare },
+    ]
+  },
+  {
+    section: 'Engagement', items: [
+      { id: 'leveling', label: 'Leveling', icon: Star },
+      { id: 'welcomer', label: 'Welcomer', icon: Users },
+      { id: 'giveaways', label: 'Giveaways', icon: Gift }, { id: 'fun', label: 'Fun', icon: Gamepad2 },
+    ]
+  },
+  {
+    section: 'Utility', items: [
+      { id: 'customcmds', label: 'Custom Commands', icon: Terminal },
+      { id: 'autoresponder', label: 'Auto Responder', icon: MessageSquare },
+      { id: 'reactionroles', label: 'Reaction Roles', icon: Crown },
+      { id: 'roles', label: 'Roles', icon: Crown },
+      { id: 'channels', label: 'Channels', icon: Hash },
+      { id: 'utility', label: 'Utility', icon: Wrench },
+    ]
+  },
+  {
+    section: 'Analytics', items: [
+      { id: 'stats', label: 'Statistics', icon: BarChart2 },
+      { id: 'status', label: 'Bot Status', icon: Activity },
+    ]
+  },
 ]
 
 const CAT_COLOR = {
-  Moderation:'#E74C3C', Leveling:'#F39C12', Fun:'#9B59B6',
-  Actions:'#E91E8C', Utility:'#4A90E2', Economy:'#2ECC71',
-  Giveaway:'#F97316', Minigames:'#06B6D4', Owner:'#540000',
+  Moderation: '#E74C3C', Leveling: '#F39C12', Fun: '#9B59B6',
+  Actions: '#E91E8C', Utility: '#4A90E2', Economy: '#2ECC71',
+  Giveaway: '#F97316', Minigames: '#06B6D4', Owner: '#540000',
 }
 
 function GuildAvatar({ guild, size = 10 }) {
   if (guild?.icon)
     return <img src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=64`}
-                alt={guild.name} className={`w-${size} h-${size} rounded-xl object-cover`} />
+      alt={guild.name} className={`w-${size} h-${size} rounded-xl object-cover`} />
   const init = (guild?.name || '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
   return (
     <div className={`w-${size} h-${size} rounded-xl flex items-center justify-center text-sm font-bold`}
-         style={{ background: 'linear-gradient(135deg,#540000,#3A0000)', color: '#ffaaaa' }}>
+      style={{ background: 'linear-gradient(135deg,#540000,#3A0000)', color: '#ffaaaa' }}>
       {init}
     </div>
   )
@@ -71,7 +84,7 @@ function GuildAvatar({ guild, size = 10 }) {
 
 // ── Overview ──────────────────────────────────────────────────────────────────
 function OverviewPanel({ guild, botStatus }) {
-  const online = botStatus?.online && (Date.now()/1000 - (botStatus?.last_seen||0)) < 90
+  const online = botStatus?.online && (Date.now() / 1000 - (botStatus?.last_seen || 0)) < 90
   return (
     <div className="space-y-5 animate-fade-in">
       {/* Guild hero */}
@@ -84,7 +97,7 @@ function OverviewPanel({ guild, botStatus }) {
           </p>
           <div className="flex items-center gap-2 mt-2">
             <div className={`w-2 h-2 rounded-full ${online ? 'bg-g-success' : 'bg-g-error'}`}
-                 style={{ boxShadow: online ? '0 0 6px #2ECC71' : '0 0 6px #E74C3C' }} />
+              style={{ boxShadow: online ? '0 0 6px #2ECC71' : '0 0 6px #E74C3C' }} />
             <span className="text-xs font-medium" style={{ color: online ? '#2ECC71' : '#E74C3C' }}>
               Bot {online ? 'Online' : 'Offline'}
             </span>
@@ -98,10 +111,10 @@ function OverviewPanel({ guild, botStatus }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users}    label="Members"       value={guild?.member_count?.toLocaleString() || '—'} />
-        <StatCard icon={Activity} label="Latency"       value={`${Math.round(botStatus?.latency_ms||0)}ms`} accent="#4A90E2" />
-        <StatCard icon={Terminal} label="Prefix"        value={guild?.prefix || '?'} />
-        <StatCard icon={Server}   label="Total Servers" value={botStatus?.guild_count || '—'} />
+        <StatCard icon={Users} label="Members" value={guild?.member_count?.toLocaleString() || '—'} />
+        <StatCard icon={Activity} label="Latency" value={`${Math.round(botStatus?.latency_ms || 0)}ms`} accent="#4A90E2" />
+        <StatCard icon={Terminal} label="Prefix" value={guild?.prefix || '?'} />
+        <StatCard icon={Server} label="Total Servers" value={botStatus?.guild_count || '—'} />
       </div>
 
       {/* Quick access grid */}
@@ -128,21 +141,21 @@ function OverviewPanel({ guild, botStatus }) {
 
 // ── Commands ──────────────────────────────────────────────────────────────────
 function CommandsPanel({ guildId }) {
-  const [configs,  setConfigs]  = useState({})
-  const [search,   setSearch]   = useState('')
+  const [configs, setConfigs] = useState({})
+  const [search, setSearch] = useState('')
   const [category, setCategory] = useState('all')
-  const [loading,  setLoading]  = useState(true)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!guildId) return
     getCommands(guildId).then(r => {
       const map = {}; r.data.forEach(c => { map[c.command_name] = c }); setConfigs(map)
-    }).catch(() => {}).finally(() => setLoading(false))
+    }).catch(() => { }).finally(() => setLoading(false))
   }, [guildId])
 
   const handleToggle = useCallback(async (cmdName, enabled) => {
     const cfg = configs[cmdName] || {}
-    await updateCommand(guildId, { command_name: cmdName, enabled, cooldown: cfg.cooldown||0, roles: cfg.roles||'[]' })
+    await updateCommand(guildId, { command_name: cmdName, enabled, cooldown: cfg.cooldown || 0, roles: cfg.roles || '[]' })
     setConfigs(prev => ({ ...prev, [cmdName]: { ...cfg, command_name: cmdName, enabled } }))
     toast.success(`${cmdName} ${enabled ? 'enabled' : 'disabled'}`)
   }, [guildId, configs])
@@ -156,7 +169,7 @@ function CommandsPanel({ guildId }) {
     return true
   })
 
-  const enabledCount  = filtered.filter(c => configs[c.name]?.enabled !== false).length
+  const enabledCount = filtered.filter(c => configs[c.name]?.enabled !== false).length
   const disabledCount = filtered.filter(c => configs[c.name]?.enabled === false).length
 
   return (
@@ -166,7 +179,7 @@ function CommandsPanel({ guildId }) {
         <div className="relative flex-1">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-d)' }} />
           <input className="input pl-8 text-sm" placeholder="Search commands…"
-                 value={search} onChange={e => setSearch(e.target.value)} />
+            value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <select className="input text-sm w-auto" value={category} onChange={e => setCategory(e.target.value)}>
           <option value="all">All Categories</option>
@@ -203,7 +216,7 @@ function CommandsPanel({ guildId }) {
             <tbody>
               {filtered.map(cmd => {
                 const enabled = configs[cmd.name]?.enabled ?? true
-                const color   = CAT_COLOR[cmd.category] || '#540000'
+                const color = CAT_COLOR[cmd.category] || '#540000'
                 return (
                   <tr key={`${cmd.name}-${cmd.category}`}>
                     <td>
@@ -238,8 +251,8 @@ function CommandsPanel({ guildId }) {
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 function SettingsPanel({ guild, onPrefixSave }) {
-  const [prefix,  setPrefix]  = useState(guild?.prefix || '?')
-  const [saving,  setSaving]  = useState(false)
+  const [prefix, setPrefix] = useState(guild?.prefix || '?')
+  const [saving, setSaving] = useState(false)
   useEffect(() => { if (guild?.prefix) setPrefix(guild.prefix) }, [guild])
 
   async function save() {
@@ -260,9 +273,9 @@ function SettingsPanel({ guild, onPrefixSave }) {
         </div>
         <div className="flex gap-3 items-center">
           <input className="input font-mono w-24 text-center text-lg" value={prefix}
-                 onChange={e => setPrefix(e.target.value.slice(0, 5))} maxLength={5} />
+            onChange={e => setPrefix(e.target.value.slice(0, 5))} maxLength={5} />
           <button className="btn btn-primary" onClick={save}
-                  disabled={saving || prefix === guild?.prefix}>
+            disabled={saving || prefix === guild?.prefix}>
             {saving ? 'Saving…' : 'Save'}
           </button>
           {prefix !== guild?.prefix && (
@@ -277,9 +290,9 @@ function SettingsPanel({ guild, onPrefixSave }) {
           <table>
             <tbody>
               {[
-                ['Server ID',    guild?.id],
-                ['Server Name',  guild?.name],
-                ['Members',      guild?.member_count?.toLocaleString()],
+                ['Server ID', guild?.id],
+                ['Server Name', guild?.name],
+                ['Members', guild?.member_count?.toLocaleString()],
                 ['Current Prefix', guild?.prefix || '?'],
               ].map(([label, value]) => (
                 <tr key={label}>
@@ -297,52 +310,64 @@ function SettingsPanel({ guild, onPrefixSave }) {
 
 // ── Action Log ────────────────────────────────────────────────────────────────
 const AL = {
-  bg:       '#1a0000',
-  card:     '#2a0000',
-  hover:    '#3a0000',
-  border:   '#540000',
-  borderSub:'#3d0000',
-  text1:    '#f5d0d0',
-  text2:    '#b07070',
-  textDis:  '#6b3a3a',
-  accent:   '#cc2222',
-  btnBg:    '#540000',
+  bg: '#1a0000',
+  card: '#2a0000',
+  hover: '#3a0000',
+  border: '#540000',
+  borderSub: '#3d0000',
+  text1: '#f5d0d0',
+  text2: '#b07070',
+  textDis: '#6b3a3a',
+  accent: '#cc2222',
+  btnBg: '#540000',
 }
 
 const EVENT_CATEGORIES = [
-  { label: 'Member Events', events: [
-    { key: 'member_join',     label: 'Member Joined',       desc: 'When someone joins the server' },
-    { key: 'member_leave',    label: 'Member Left',         desc: 'When someone leaves or is kicked' },
-    { key: 'member_ban',      label: 'Member Banned',       desc: 'When a member is banned' },
-    { key: 'member_unban',    label: 'Member Unbanned',     desc: 'When a ban is lifted' },
-    { key: 'member_nickname', label: 'Nickname Changed',    desc: 'When a nickname is updated' },
-    { key: 'member_roles',    label: 'Roles Updated',       desc: 'When roles are added or removed' },
-    { key: 'member_timeout',  label: 'Member Timed Out',    desc: 'When a member receives a timeout' },
-  ]},
-  { label: 'Message Events', events: [
-    { key: 'message_delete',  label: 'Message Deleted',     desc: 'When a message is deleted' },
-    { key: 'message_edit',    label: 'Message Edited',      desc: 'When a message is edited' },
-    { key: 'message_bulk',    label: 'Bulk Message Delete', desc: 'When multiple messages are purged' },
-  ]},
-  { label: 'Channel Events', events: [
-    { key: 'channel_create',  label: 'Channel Created',     desc: 'When a channel is created' },
-    { key: 'channel_delete',  label: 'Channel Deleted',     desc: 'When a channel is deleted' },
-    { key: 'channel_update',  label: 'Channel Updated',     desc: 'When a channel is modified' },
-  ]},
-  { label: 'Role Events', events: [
-    { key: 'role_create',     label: 'Role Created',        desc: 'When a role is created' },
-    { key: 'role_delete',     label: 'Role Deleted',        desc: 'When a role is deleted' },
-    { key: 'role_update',     label: 'Role Updated',        desc: 'When a role is modified' },
-  ]},
-  { label: 'Server Events', events: [
-    { key: 'guild_update',    label: 'Server Updated',      desc: 'When server settings change' },
-    { key: 'emoji_update',    label: 'Emoji/Sticker Changed', desc: 'When emojis or stickers change' },
-  ]},
-  { label: 'Voice Events', events: [
-    { key: 'voice_join',      label: 'Joined Voice Channel', desc: 'When a member joins a voice channel' },
-    { key: 'voice_leave',     label: 'Left Voice Channel',   desc: 'When a member leaves a voice channel' },
-    { key: 'voice_move',      label: 'Moved Voice Channels', desc: 'When a member switches voice channels' },
-  ]},
+  {
+    label: 'Member Events', events: [
+      { key: 'member_join', label: 'Member Joined', desc: 'When someone joins the server' },
+      { key: 'member_leave', label: 'Member Left', desc: 'When someone leaves or is kicked' },
+      { key: 'member_ban', label: 'Member Banned', desc: 'When a member is banned' },
+      { key: 'member_unban', label: 'Member Unbanned', desc: 'When a ban is lifted' },
+      { key: 'member_nickname', label: 'Nickname Changed', desc: 'When a nickname is updated' },
+      { key: 'member_roles', label: 'Roles Updated', desc: 'When roles are added or removed' },
+      { key: 'member_timeout', label: 'Member Timed Out', desc: 'When a member receives a timeout' },
+    ]
+  },
+  {
+    label: 'Message Events', events: [
+      { key: 'message_delete', label: 'Message Deleted', desc: 'When a message is deleted' },
+      { key: 'message_edit', label: 'Message Edited', desc: 'When a message is edited' },
+      { key: 'message_bulk', label: 'Bulk Message Delete', desc: 'When multiple messages are purged' },
+    ]
+  },
+  {
+    label: 'Channel Events', events: [
+      { key: 'channel_create', label: 'Channel Created', desc: 'When a channel is created' },
+      { key: 'channel_delete', label: 'Channel Deleted', desc: 'When a channel is deleted' },
+      { key: 'channel_update', label: 'Channel Updated', desc: 'When a channel is modified' },
+    ]
+  },
+  {
+    label: 'Role Events', events: [
+      { key: 'role_create', label: 'Role Created', desc: 'When a role is created' },
+      { key: 'role_delete', label: 'Role Deleted', desc: 'When a role is deleted' },
+      { key: 'role_update', label: 'Role Updated', desc: 'When a role is modified' },
+    ]
+  },
+  {
+    label: 'Server Events', events: [
+      { key: 'guild_update', label: 'Server Updated', desc: 'When server settings change' },
+      { key: 'emoji_update', label: 'Emoji/Sticker Changed', desc: 'When emojis or stickers change' },
+    ]
+  },
+  {
+    label: 'Voice Events', events: [
+      { key: 'voice_join', label: 'Joined Voice Channel', desc: 'When a member joins a voice channel' },
+      { key: 'voice_leave', label: 'Left Voice Channel', desc: 'When a member leaves a voice channel' },
+      { key: 'voice_move', label: 'Moved Voice Channels', desc: 'When a member switches voice channels' },
+    ]
+  },
 ]
 
 const DEFAULT_AL_STATE = {
@@ -351,27 +376,27 @@ const DEFAULT_AL_STATE = {
   ignoredChannels: [],
   ignoredRoles: [],
   events: {
-    member_join:     { enabled: true,  channelId: null },
-    member_leave:    { enabled: true,  channelId: null },
-    member_ban:      { enabled: true,  channelId: null },
-    member_unban:    { enabled: true,  channelId: null },
-    member_nickname: { enabled: true,  channelId: null },
-    member_roles:    { enabled: true,  channelId: null },
-    member_timeout:  { enabled: true,  channelId: null },
-    message_delete:  { enabled: true,  channelId: null },
-    message_edit:    { enabled: true,  channelId: null },
-    message_bulk:    { enabled: true,  channelId: null },
-    channel_create:  { enabled: true,  channelId: null },
-    channel_delete:  { enabled: true,  channelId: null },
-    channel_update:  { enabled: false, channelId: null },
-    role_create:     { enabled: true,  channelId: null },
-    role_delete:     { enabled: true,  channelId: null },
-    role_update:     { enabled: false, channelId: null },
-    guild_update:    { enabled: false, channelId: null },
-    emoji_update:    { enabled: false, channelId: null },
-    voice_join:      { enabled: false, channelId: null },
-    voice_leave:     { enabled: false, channelId: null },
-    voice_move:      { enabled: false, channelId: null },
+    member_join: { enabled: true, channelId: null },
+    member_leave: { enabled: true, channelId: null },
+    member_ban: { enabled: true, channelId: null },
+    member_unban: { enabled: true, channelId: null },
+    member_nickname: { enabled: true, channelId: null },
+    member_roles: { enabled: true, channelId: null },
+    member_timeout: { enabled: true, channelId: null },
+    message_delete: { enabled: true, channelId: null },
+    message_edit: { enabled: true, channelId: null },
+    message_bulk: { enabled: true, channelId: null },
+    channel_create: { enabled: true, channelId: null },
+    channel_delete: { enabled: true, channelId: null },
+    channel_update: { enabled: false, channelId: null },
+    role_create: { enabled: true, channelId: null },
+    role_delete: { enabled: true, channelId: null },
+    role_update: { enabled: false, channelId: null },
+    guild_update: { enabled: false, channelId: null },
+    emoji_update: { enabled: false, channelId: null },
+    voice_join: { enabled: false, channelId: null },
+    voice_leave: { enabled: false, channelId: null },
+    voice_move: { enabled: false, channelId: null },
   },
 }
 
@@ -444,11 +469,11 @@ function ALToggle({ enabled, onChange }) {
 }
 
 function ActionLogPanel({ guildId }) {
-  const [cfg,      setCfg]      = useState(DEFAULT_AL_STATE)
+  const [cfg, setCfg] = useState(DEFAULT_AL_STATE)
   const [channels, setChannels] = useState([])
-  const [roles,    setRoles]    = useState([])
-  const [loading,  setLoading]  = useState(true)
-  const [saving,   setSaving]   = useState(false)
+  const [roles, setRoles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [collapsed, setCollapsed] = useState({})
 
   useEffect(() => {
@@ -620,26 +645,26 @@ function ActionLogPanel({ guildId }) {
 
 // ── AutoMod ───────────────────────────────────────────────────────────────────
 const AM_RULE_TYPES = [
-  { key: 'caps',        label: 'All Caps',               desc: 'Detects messages that are mostly uppercase.' },
-  { key: 'badwords',    label: 'Bad Words',               desc: 'Detects when a user sends a message containing a certain word or phrase.' },
-  { key: 'newlines',    label: 'Chat Clearing Newlines',  desc: 'Detects messages with excessive line breaks.' },
-  { key: 'duplicates',  label: 'Duplicate Text',          desc: 'Detects when a user sends the same message repeatedly.' },
-  { key: 'charcount',   label: 'Character Count',         desc: 'Detects messages that exceed a character limit.' },
-  { key: 'emoji',       label: 'Emoji Spam',              desc: 'Detects messages with too many emojis.' },
-  { key: 'invites',     label: 'Invite Links',            desc: 'Detects when a user sends an invite link.' },
-  { key: 'links',       label: 'Links Cooldown',          desc: 'Detects when a user sends too many links every x seconds.' },
-  { key: 'mentions',    label: 'Mass Mention',            desc: 'Detects messages with too many user/role mentions.' },
-  { key: 'spam',        label: 'Message Spam',            desc: 'Detects when a user sends too many messages in a short time.' },
-  { key: 'zalgo',       label: 'Zalgo Text',              desc: 'Detects messages with zalgo/corrupted text.' },
+  { key: 'caps', label: 'All Caps', desc: 'Detects messages that are mostly uppercase.' },
+  { key: 'badwords', label: 'Bad Words', desc: 'Detects when a user sends a message containing a certain word or phrase.' },
+  { key: 'newlines', label: 'Chat Clearing Newlines', desc: 'Detects messages with excessive line breaks.' },
+  { key: 'duplicates', label: 'Duplicate Text', desc: 'Detects when a user sends the same message repeatedly.' },
+  { key: 'charcount', label: 'Character Count', desc: 'Detects messages that exceed a character limit.' },
+  { key: 'emoji', label: 'Emoji Spam', desc: 'Detects messages with too many emojis.' },
+  { key: 'invites', label: 'Invite Links', desc: 'Detects when a user sends an invite link.' },
+  { key: 'links', label: 'Links Cooldown', desc: 'Detects when a user sends too many links every x seconds.' },
+  { key: 'mentions', label: 'Mass Mention', desc: 'Detects messages with too many user/role mentions.' },
+  { key: 'spam', label: 'Message Spam', desc: 'Detects when a user sends too many messages in a short time.' },
+  { key: 'zalgo', label: 'Zalgo Text', desc: 'Detects messages with zalgo/corrupted text.' },
 ]
 
 const AM_ACTIONS = [
-  { key: 'warn',         label: 'Warn' },
-  { key: 'delete',       label: 'Delete' },
-  { key: 'mute',         label: 'Automute' },
-  { key: 'ban',          label: 'Autoban' },
+  { key: 'warn', label: 'Warn' },
+  { key: 'delete', label: 'Delete' },
+  { key: 'mute', label: 'Automute' },
+  { key: 'ban', label: 'Autoban' },
   { key: 'mute_instant', label: 'Instant Mute' },
-  { key: 'kick',         label: 'Kick' },
+  { key: 'kick', label: 'Kick' },
 ]
 
 const AM_RULE_DEFAULTS = {
@@ -873,7 +898,7 @@ function RuleModal({ rule, onSave, onClose, channels, roles }) {
                   </div>
                 </div>
               )}
-              {['caps','mentions','emoji','newlines','duplicates','charcount'].includes(form.type) && (
+              {['caps', 'mentions', 'emoji', 'newlines', 'duplicates', 'charcount'].includes(form.type) && (
                 <div>
                   <label style={{ color: '#aaa', fontSize: 12, display: 'block', marginBottom: 4 }}>
                     {form.type === 'caps' ? 'Caps % Threshold' : form.type === 'mentions' ? 'Max Mentions' : form.type === 'emoji' ? 'Max Emojis' : form.type === 'newlines' ? 'Max Newlines' : form.type === 'charcount' ? 'Max Characters' : 'Repeat Count'}
@@ -947,13 +972,13 @@ function AMRuleCard({ rule, onEdit, onDelete, onToggle }) {
 }
 
 function AutoModPanel({ guildId }) {
-  const [cfg,      setCfg]      = React.useState(DEFAULT_AM)
+  const [cfg, setCfg] = React.useState(DEFAULT_AM)
   const [channels, setChannels] = React.useState([])
-  const [roles,    setRoles]    = React.useState([])
-  const [loading,  setLoading]  = React.useState(true)
-  const [saving,   setSaving]   = React.useState(false)
-  const [modal,    setModal]    = React.useState(null)
-  const [search,   setSearch]   = React.useState('')
+  const [roles, setRoles] = React.useState([])
+  const [loading, setLoading] = React.useState(true)
+  const [saving, setSaving] = React.useState(false)
+  const [modal, setModal] = React.useState(null)
+  const [search, setSearch] = React.useState('')
 
   React.useEffect(() => {
     if (!guildId) return
@@ -1056,14 +1081,14 @@ function AutoModPanel({ guildId }) {
 
 // ── Moderation ────────────────────────────────────────────────────────────────
 const MOD = {
-  bg:      '#16161e',
-  card:    '#1e1e24',
-  border:  '#2a2a35',
-  text1:   '#ffffff',
-  text2:   '#aaaaaa',
-  text3:   '#cccccc',
-  accent:  '#cc2222',
-  input:   '#1e1e24',
+  bg: '#16161e',
+  card: '#1e1e24',
+  border: '#2a2a35',
+  text1: '#ffffff',
+  text2: '#aaaaaa',
+  text3: '#cccccc',
+  accent: '#cc2222',
+  input: '#1e1e24',
   inputBorder: '#333333',
 }
 
@@ -1080,11 +1105,11 @@ const DEFAULT_MOD_SETTINGS = {
   protected_roles: [],
   lockdown_channels: [],
   custom_responses: {
-    ban:    '***{user} was banned***',
-    unban:  '***{user} was unbanned***',
-    softban:'***{user} was softbanned***',
-    kick:   '***{user} was kicked***',
-    mute:   '***{user} was muted***',
+    ban: '***{user} was banned***',
+    unban: '***{user} was unbanned***',
+    softban: '***{user} was softbanned***',
+    kick: '***{user} was kicked***',
+    mute: '***{user} was muted***',
     unmute: '***{user} was unmuted***',
   },
   autopunish: [],
@@ -1116,7 +1141,7 @@ function ModCheckbox({ checked, onChange, label }) {
       >
         {checked && (
           <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-            <path d="M1 4L3.5 6.5L9 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M1 4L3.5 6.5L9 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
       </span>
@@ -1209,21 +1234,21 @@ function ModSettingsTab({ cfg, setCfg, channels, roles, onSave, saving }) {
   React.useEffect(() => { setLocalResponses(cfg.custom_responses || {}) }, [cfg.custom_responses])
 
   const CHECKBOXES = [
-    { key: 'dm_on_action',            label: 'DM Users on Kick/Ban/Mute' },
-    { key: 'use_discord_timeouts',    label: 'Use Discord Timeouts for Mute' },
-    { key: 'delete_mod_commands',     label: 'Delete Mod Commands After Executed' },
-    { key: 'respond_with_reason',     label: 'Respond with Reason' },
-    { key: 'remove_roles_on_mute',    label: 'Remove Roles When Muted' },
-    { key: 'preserve_messages_on_ban',label: 'Preserve Messages on Ban' },
+    { key: 'dm_on_action', label: 'DM Users on Kick/Ban/Mute' },
+    { key: 'use_discord_timeouts', label: 'Use Discord Timeouts for Mute' },
+    { key: 'delete_mod_commands', label: 'Delete Mod Commands After Executed' },
+    { key: 'respond_with_reason', label: 'Respond with Reason' },
+    { key: 'remove_roles_on_mute', label: 'Remove Roles When Muted' },
+    { key: 'preserve_messages_on_ban', label: 'Preserve Messages on Ban' },
   ]
 
   const RESPONSE_KEYS = [
-    { key: 'ban',     label: 'Ban Message' },
-    { key: 'unban',   label: 'Unban Message' },
+    { key: 'ban', label: 'Ban Message' },
+    { key: 'unban', label: 'Unban Message' },
     { key: 'softban', label: 'Softban Message' },
-    { key: 'kick',    label: 'Kick Message' },
-    { key: 'mute',    label: 'Mute Message' },
-    { key: 'unmute',  label: 'Unmute Message' },
+    { key: 'kick', label: 'Kick Message' },
+    { key: 'mute', label: 'Mute Message' },
+    { key: 'unmute', label: 'Unmute Message' },
   ]
 
   return (
@@ -1324,8 +1349,8 @@ function ModSettingsTab({ cfg, setCfg, channels, roles, onSave, saving }) {
 // Autopunish Tab
 function ModAutopunishTab({ cfg, setCfg, onSave, saving }) {
   const [warnCount, setWarnCount] = React.useState(3)
-  const [action,    setAction]    = React.useState('mute')
-  const [duration,  setDuration]  = React.useState(60)
+  const [action, setAction] = React.useState('mute')
+  const [duration, setDuration] = React.useState(60)
 
   function addRule() {
     const rule = { warnings: Number(warnCount), action, duration: Number(duration) }
@@ -1444,9 +1469,9 @@ function ModAutopunishTab({ cfg, setCfg, onSave, saving }) {
 function ModAppealsTab({ cfg, setCfg, onSave, saving }) {
   const setAppeals = patch => setCfg(p => ({ ...p, appeals: { ...p.appeals, ...patch } }))
   const ap = cfg.appeals || {}
-  const [localBanDays,  setLocalBanDays]  = React.useState(String(ap.ban_waiting_days  ?? 0))
+  const [localBanDays, setLocalBanDays] = React.useState(String(ap.ban_waiting_days ?? 0))
   const [localMuteDays, setLocalMuteDays] = React.useState(String(ap.mute_waiting_days ?? 0))
-  const [localInvite,   setLocalInvite]   = React.useState(ap.invite_url || '')
+  const [localInvite, setLocalInvite] = React.useState(ap.invite_url || '')
 
   React.useEffect(() => {
     setLocalBanDays(String(ap.ban_waiting_days ?? 0))
@@ -1468,7 +1493,7 @@ function ModAppealsTab({ cfg, setCfg, onSave, saving }) {
           <ModSectionLabel>Allow Appeals For</ModSectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <ModCheckbox checked={!!ap.allow_banned} onChange={v => setAppeals({ allow_banned: v })} label="Banned Users" />
-            <ModCheckbox checked={!!ap.allow_muted}  onChange={v => setAppeals({ allow_muted: v })}  label="Muted Members" />
+            <ModCheckbox checked={!!ap.allow_muted} onChange={v => setAppeals({ allow_muted: v })} label="Muted Members" />
           </div>
         </ModCard>
       </div>
@@ -1503,9 +1528,9 @@ function ModAppealsTab({ cfg, setCfg, onSave, saving }) {
         <ModCard>
           <ModSectionLabel>DM User On</ModSectionLabel>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <ModCheckbox checked={!!ap.dm_on_approval_unban}  onChange={v => setAppeals({ dm_on_approval_unban: v })}  label="Approval (Unban)" />
+            <ModCheckbox checked={!!ap.dm_on_approval_unban} onChange={v => setAppeals({ dm_on_approval_unban: v })} label="Approval (Unban)" />
             <ModCheckbox checked={!!ap.dm_on_approval_unmute} onChange={v => setAppeals({ dm_on_approval_unmute: v })} label="Approval (Unmute)" />
-            <ModCheckbox checked={!!ap.dm_on_rejection}       onChange={v => setAppeals({ dm_on_rejection: v })}       label="Rejection" />
+            <ModCheckbox checked={!!ap.dm_on_rejection} onChange={v => setAppeals({ dm_on_rejection: v })} label="Rejection" />
           </div>
           <p style={{ color: '#555', fontSize: 11, margin: '12px 0 0' }}>
             Bot will DM the user when their appeal is approved or rejected.
@@ -1547,12 +1572,12 @@ function ModAppealsTab({ cfg, setCfg, onSave, saving }) {
 }
 
 function ModerationPanel({ guildId }) {
-  const [cfg,      setCfg]      = React.useState(DEFAULT_MOD_SETTINGS)
+  const [cfg, setCfg] = React.useState(DEFAULT_MOD_SETTINGS)
   const [channels, setChannels] = React.useState([])
-  const [roles,    setRoles]    = React.useState([])
-  const [loading,  setLoading]  = React.useState(true)
-  const [saving,   setSaving]   = React.useState(false)
-  const [tab,      setTab]      = React.useState('settings')
+  const [roles, setRoles] = React.useState([])
+  const [loading, setLoading] = React.useState(true)
+  const [saving, setSaving] = React.useState(false)
+  const [tab, setTab] = React.useState('settings')
 
   React.useEffect(() => {
     if (!guildId) return
@@ -1586,9 +1611,9 @@ function ModerationPanel({ guildId }) {
   }
 
   const TABS = [
-    { id: 'settings',   label: 'Settings'   },
+    { id: 'settings', label: 'Settings' },
     { id: 'autopunish', label: 'Autopunish' },
-    { id: 'appeals',    label: 'Appeals'    },
+    { id: 'appeals', label: 'Appeals' },
   ]
 
   if (loading) return (
@@ -1648,24 +1673,24 @@ function ModerationPanel({ guildId }) {
 
 // ── Welcomer ──────────────────────────────────────────────────────────────────
 const MSG_TYPES = [
-  { id: 'message',       label: 'MESSAGE',        desc: 'Plain text only' },
-  { id: 'embed',         label: 'EMBED',          desc: 'Rich embed' },
-  { id: 'embed_and_text',label: 'EMBED + TEXT',   desc: 'Text above embed' },
-  { id: 'v2embed',       label: 'V2 EMBED',       desc: 'V2 component with avatar thumbnail' },
-  { id: 'v2_full',       label: 'V2 FULL',        desc: 'Text + V2 section + image/gif (like screenshot)' },
-  { id: 'custom_image',  label: 'CUSTOM IMAGE',   desc: 'Text + image/gif with position control' },
+  { id: 'message', label: 'MESSAGE', desc: 'Plain text only' },
+  { id: 'embed', label: 'EMBED', desc: 'Rich embed' },
+  { id: 'embed_and_text', label: 'EMBED + TEXT', desc: 'Text above embed' },
+  { id: 'v2embed', label: 'V2 EMBED', desc: 'V2 component with avatar thumbnail' },
+  { id: 'v2_full', label: 'V2 FULL', desc: 'Text + V2 section + image/gif (like screenshot)' },
+  { id: 'custom_image', label: 'CUSTOM IMAGE', desc: 'Text + image/gif with position control' },
 ]
 
 const WELCOMER_VARS = [
-  ['{user}',         'The mention of the user. Eg: Hello {user}!'],
-  ['{username}',     'The username of the user. Eg: Hello {username}!'],
-  ['{avatar}',       'The avatar URL — used as thumbnail in embed/v2embed (do not put in message text)'],
-  ['{server}',       'The server name.'],
+  ['{user}', 'The mention of the user. Eg: Hello {user}!'],
+  ['{username}', 'The username of the user. Eg: Hello {username}!'],
+  ['{avatar}', 'The avatar URL — used as thumbnail in embed/v2embed (do not put in message text)'],
+  ['{server}', 'The server name.'],
   ['{member_count}', 'Total member count.'],
-  ['{&role}',        'Mention a role by name. Eg: {&Gamers}'],
-  ['{#channel}',     'Link a channel by name. Eg: {#general}'],
-  ['{everyone}',     '@everyone'],
-  ['{here}',         '@here'],
+  ['{&role}', 'Mention a role by name. Eg: {&Gamers}'],
+  ['{#channel}', 'Link a channel by name. Eg: {#general}'],
+  ['{everyone}', '@everyone'],
+  ['{here}', '@here'],
 ]
 
 const DEFAULT_WELCOMER = {
@@ -1683,10 +1708,10 @@ const DEFAULT_WELCOMER = {
 }
 
 function WelcomerPanel({ guildId }) {
-  const [cfg,      setCfg]      = React.useState(DEFAULT_WELCOMER)
+  const [cfg, setCfg] = React.useState(DEFAULT_WELCOMER)
   const [channels, setChannels] = React.useState([])
-  const [loading,  setLoading]  = React.useState(true)
-  const [saving,   setSaving]   = React.useState(false)
+  const [loading, setLoading] = React.useState(true)
+  const [saving, setSaving] = React.useState(false)
 
   React.useEffect(() => {
     if (!guildId) return
@@ -1713,7 +1738,7 @@ function WelcomerPanel({ guildId }) {
   const S = { bg: '#16161e', card: '#1e1e24', border: '#2a2a35', text1: '#fff', text2: '#aaa', text3: '#ccc', accent: '#cc2222' }
   const inp = { background: S.card, border: `1px solid #333`, borderRadius: 6, padding: '9px 12px', color: S.text3, fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box' }
 
-  if (loading) return <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{[...Array(4)].map((_,i) => <div key={i} style={{ height: 60, borderRadius: 8, background: S.card }} />)}</div>
+  if (loading) return <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{[...Array(4)].map((_, i) => <div key={i} style={{ height: 60, borderRadius: 8, background: S.card }} />)}</div>
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: 960 }}>
@@ -1767,7 +1792,7 @@ function WelcomerPanel({ guildId }) {
               background: cfg.send_dm ? S.accent : 'transparent', cursor: 'pointer', flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              {cfg.send_dm && <svg width="9" height="7" viewBox="0 0 9 7"><path d="M1 3.5L3 5.5L8 1" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>}
+              {cfg.send_dm && <svg width="9" height="7" viewBox="0 0 9 7"><path d="M1 3.5L3 5.5L8 1" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>}
             </span>
             <span style={{ color: S.text2, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Send Welcome Message in a DM (Private Message)</span>
           </label>
@@ -1832,7 +1857,7 @@ function WelcomerPanel({ guildId }) {
             <div>
               <p style={{ color: S.text2, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px' }}>Image Position</p>
               <div style={{ display: 'flex', gap: 8 }}>
-                {[['above','Above Text'],['below','Below Text'],['embed_image','Inside Embed']].map(([val, label]) => (
+                {[['above', 'Above Text'], ['below', 'Below Text'], ['embed_image', 'Inside Embed']].map(([val, label]) => (
                   <button key={val} onClick={() => set({ image_position: val })}
                     style={{
                       padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer',
@@ -1920,69 +1945,69 @@ function WelcomerPanel({ guildId }) {
 // ── Custom Commands ───────────────────────────────────────────────────────────
 const CC_VARS = [
   // Basic
-  ['{user}',              'Mention the user. Eg: Hello {user}!'],
-  ['{username}',          'Username. Eg: Hello {username}!'],
-  ['{avatar}',            'User avatar URL'],
-  ['{server}',            'Server name'],
-  ['{channel}',           'Current channel mention'],
-  ['{prefix}',            'Server command prefix'],
-  ['{everyone}',          '@everyone'],
-  ['{here}',              '@here'],
+  ['{user}', 'Mention the user. Eg: Hello {user}!'],
+  ['{username}', 'Username. Eg: Hello {username}!'],
+  ['{avatar}', 'User avatar URL'],
+  ['{server}', 'Server name'],
+  ['{channel}', 'Current channel mention'],
+  ['{prefix}', 'Server command prefix'],
+  ['{everyone}', '@everyone'],
+  ['{here}', '@here'],
   // User
-  ['{user.id}',           "User's ID"],
-  ['{user.name}',         "Username#discriminator"],
-  ['{user.username}',     "Username"],
-  ['{user.discrim}',      "Discriminator"],
-  ['{user.nick}',         "Nickname"],
-  ['{user.avatar}',       "Avatar URL"],
-  ['{user.mention}',      "Mention"],
-  ['{user.createdAt}',    "Account creation date"],
-  ['{user.joinedAt}',     "Server join date"],
+  ['{user.id}', "User's ID"],
+  ['{user.name}', "Username#discriminator"],
+  ['{user.username}', "Username"],
+  ['{user.discrim}', "Discriminator"],
+  ['{user.nick}', "Nickname"],
+  ['{user.avatar}', "Avatar URL"],
+  ['{user.mention}', "Mention"],
+  ['{user.createdAt}', "Account creation date"],
+  ['{user.joinedAt}', "Server join date"],
   // Server
-  ['{server.id}',         "Server ID"],
-  ['{server.name}',       "Server name"],
-  ['{server.icon}',       "Server icon URL"],
-  ['{server.memberCount}',"Member count"],
-  ['{server.ownerID}',    "Owner ID"],
-  ['{server.createdAt}',  "Server creation date"],
+  ['{server.id}', "Server ID"],
+  ['{server.name}', "Server name"],
+  ['{server.icon}', "Server icon URL"],
+  ['{server.memberCount}', "Member count"],
+  ['{server.ownerID}', "Owner ID"],
+  ['{server.createdAt}', "Server creation date"],
   // Channel
-  ['{channel.id}',        "Channel ID"],
-  ['{channel.name}',      "Channel name"],
-  ['{channel.mention}',   "Channel mention"],
+  ['{channel.id}', "Channel ID"],
+  ['{channel.name}', "Channel name"],
+  ['{channel.mention}', "Channel mention"],
   // Time
-  ['{time}',              "Current 24h time (UTC)"],
-  ['{time12}',            "Current 12h time"],
-  ['{date}',              "Current date"],
-  ['{datetime}',          "Date + 24h time"],
-  ['{datetime12}',        "Date + 12h time"],
+  ['{time}', "Current 24h time (UTC)"],
+  ['{time12}', "Current 12h time"],
+  ['{date}', "Current date"],
+  ['{datetime}', "Date + 24h time"],
+  ['{datetime12}', "Date + 12h time"],
   // Args
-  ['$1, $2, ...',         "Command argument by position. Eg: ?cmd hello → $1 = hello"],
-  ['$1+',                 "All arguments from position N onwards"],
+  ['$1, $2, ...', "Command argument by position. Eg: ?cmd hello → $1 = hello"],
+  ['$1+', "All arguments from position N onwards"],
   // Advanced
-  ['{delete}',            "Delete the trigger message"],
-  ['{silent}',            "Send no response"],
-  ['{noeveryone}',        "Disable @everyone/@here pings in response"],
-  ['{dm}',                "DM the response to the invoking user"],
-  ['{dm:username}',       "DM the response to a specific user"],
-  ['{respond:#channel}',  "Send response in a specific channel"],
-  ['{choose:a;b;c}',      "Pick a random option. Use {choice} as placeholder"],
-  ['{choice}',            "Output of {choose:...}"],
-  ['{require:Role}',      "Require a role to use the command"],
+  ['{delete}', "Delete the trigger message"],
+  ['{silent}', "Send no response"],
+  ['{noeveryone}', "Disable @everyone/@here pings in response"],
+  ['{dm}', "DM the response to the invoking user"],
+  ['{dm:username}', "DM the response to a specific user"],
+  ['{respond:#channel}', "Send response in a specific channel"],
+  ['{choose:a;b;c}', "Pick a random option. Use {choice} as placeholder"],
+  ['{choice}', "Output of {choose:...}"],
+  ['{require:Role}', "Require a role to use the command"],
   ['{require:serverMod}', "Require manage_messages permission"],
-  ['{require:#channel}',  "Require command to be used in a specific channel"],
-  ['{not:Role}',          "Block a role from using the command"],
-  ['{not:#channel}',      "Block command in a specific channel"],
-  ['{&RoleName}',         "Mention a role by name"],
-  ['{#channel-name}',     "Link a channel by name"],
-  ['<:name:id>',          "Custom emoji. Eg: <:ghost:123456789>"],
-  ['<a:name:id>',         "Animated emoji. Eg: <a:verify_red_tick:1472122073685037187>"],
-  ['$1.user.name',        "Property of the 1st mentioned user. Eg: $1.user.id, $1.user.nick"],
+  ['{require:#channel}', "Require command to be used in a specific channel"],
+  ['{not:Role}', "Block a role from using the command"],
+  ['{not:#channel}', "Block command in a specific channel"],
+  ['{&RoleName}', "Mention a role by name"],
+  ['{#channel-name}', "Link a channel by name"],
+  ['<:name:id>', "Custom emoji. Eg: <:ghost:123456789>"],
+  ['<a:name:id>', "Animated emoji. Eg: <a:verify_red_tick:1472122073685037187>"],
+  ['$1.user.name', "Property of the 1st mentioned user. Eg: $1.user.id, $1.user.nick"],
 ]
 
 const CC_DEFAULT = {
-  trigger:'', response:'', enabled:true, delete_trigger:false, dm_response:false,
-  cooldown:0, allowed_roles:[], ignored_roles:[], ignored_channels:[],
-  embed:{ title:'', description:'', color:'#cc2222', footer:'', thumbnail:'' },
+  trigger: '', response: '', enabled: true, delete_trigger: false, dm_response: false,
+  cooldown: 0, allowed_roles: [], ignored_roles: [], ignored_channels: [],
+  embed: { title: '', description: '', color: '#cc2222', footer: '', thumbnail: '' },
 }
 
 function CCModal({ cmd, onSave, onClose, channels, roles }) {
@@ -1998,19 +2023,19 @@ function CCModal({ cmd, onSave, onClose, channels, roles }) {
   const set = p => setForm(f => ({ ...f, ...p }))
   const setEmb = p => setForm(f => ({ ...f, embed: { ...f.embed, ...p } }))
   const toggleSection = k => setOpenSections(p => ({ ...p, [k]: !p[k] }))
-  const inp = { background:'#1e1e24', border:'1px solid #2a2a35', borderRadius:6, padding:'10px 14px', color:'#ccc', fontSize:14, outline:'none', width:'100%', boxSizing:'border-box' }
+  const inp = { background: '#1e1e24', border: '1px solid #2a2a35', borderRadius: 6, padding: '10px 14px', color: '#ccc', fontSize: 14, outline: 'none', width: '100%', boxSizing: 'border-box' }
 
   function CCCheck({ field, label }) {
     return (
-      <label style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer', background:'#1e1e24', border:'1px solid #2a2a35', borderRadius:6, padding:'10px 14px', flex:1 }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', background: '#1e1e24', border: '1px solid #2a2a35', borderRadius: 6, padding: '10px 14px', flex: 1 }}>
         <span onClick={() => set({ [field]: !form[field] })} style={{
-          width:16, height:16, borderRadius:3, border:`2px solid ${form[field] ? '#cc2222' : '#555'}`,
-          background: form[field] ? '#cc2222' : 'transparent', cursor:'pointer', flexShrink:0,
-          display:'flex', alignItems:'center', justifyContent:'center',
+          width: 16, height: 16, borderRadius: 3, border: `2px solid ${form[field] ? '#cc2222' : '#555'}`,
+          background: form[field] ? '#cc2222' : 'transparent', cursor: 'pointer', flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          {form[field] && <svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4L3.5 6.5L9 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>}
+          {form[field] && <svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4L3.5 6.5L9 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>}
         </span>
-        <span style={{ color:'#ccc', fontSize:13 }}>{label}</span>
+        <span style={{ color: '#ccc', fontSize: 13 }}>{label}</span>
       </label>
     )
   }
@@ -2018,107 +2043,107 @@ function CCModal({ cmd, onSave, onClose, channels, roles }) {
   function SectionHeader({ id, label }) {
     return (
       <button onClick={() => toggleSection(id)}
-        style={{ display:'flex', alignItems:'center', gap:8, background:'none', border:'none', cursor:'pointer', padding:'10px 0', width:'100%' }}>
-        <span style={{ color: openSections[id] ? '#cc2222' : '#cc2222', fontSize:16, lineHeight:1 }}>{openSections[id] ? '⊖' : '⊕'}</span>
-        <span style={{ color:'#fff', fontSize:14, fontWeight:700 }}>{label}</span>
-        <div style={{ flex:1, height:1, background:'#2a2a35', marginLeft:8 }} />
+        style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', width: '100%' }}>
+        <span style={{ color: openSections[id] ? '#cc2222' : '#cc2222', fontSize: 16, lineHeight: 1 }}>{openSections[id] ? '⊖' : '⊕'}</span>
+        <span style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>{label}</span>
+        <div style={{ flex: 1, height: 1, background: '#2a2a35', marginLeft: 8 }} />
       </button>
     )
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}
-      onClick={e => e.target===e.currentTarget && onClose()}>
-      <div style={{ background:'#16161e', border:'1px solid #2a2a35', borderRadius:12, width:'100%', maxWidth:660, maxHeight:'92vh', overflowY:'auto', padding:'24px 28px' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: '#16161e', border: '1px solid #2a2a35', borderRadius: 12, width: '100%', maxWidth: 660, maxHeight: '92vh', overflowY: 'auto', padding: '24px 28px' }}>
 
         {/* Header */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-          <h2 style={{ color:'#fff', margin:0, fontSize:20, fontWeight:700 }}>{isEdit ? 'Edit Command' : 'Add Command'}</h2>
-          <button onClick={onClose} style={{ background:'none', border:'none', color:'#888', cursor:'pointer' }}><X size={20}/></button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ color: '#fff', margin: 0, fontSize: 20, fontWeight: 700 }}>{isEdit ? 'Edit Command' : 'Add Command'}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}><X size={20} /></button>
         </div>
-        <div style={{ height:1, background:'#2a2a35', marginBottom:20 }} />
+        <div style={{ height: 1, background: '#2a2a35', marginBottom: 20 }} />
 
         {/* Name */}
-        <div style={{ marginBottom:18 }}>
-          <label style={{ color:'#fff', fontSize:15, fontWeight:700, display:'block', marginBottom:8 }}>
+        <div style={{ marginBottom: 18 }}>
+          <label style={{ color: '#fff', fontSize: 15, fontWeight: 700, display: 'block', marginBottom: 8 }}>
             Name{form.trigger ? ` - ${form.trigger.length} Characters` : ''}
           </label>
-          <input value={form.trigger} onChange={e => set({ trigger: e.target.value.replace(/\s/g,'').toLowerCase(), name: e.target.value.replace(/\s/g,'').toLowerCase() })}
+          <input value={form.trigger} onChange={e => set({ trigger: e.target.value.replace(/\s/g, '').toLowerCase(), name: e.target.value.replace(/\s/g, '').toLowerCase() })}
             disabled={isEdit} placeholder="commandname"
             style={{ ...inp, opacity: isEdit ? 0.7 : 1 }} />
           {isEdit && (
-            <button style={{ marginTop:8, background:'#cc2222', color:'#fff', border:'none', borderRadius:6, padding:'7px 18px', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+            <button style={{ marginTop: 8, background: '#cc2222', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
               Rename
             </button>
           )}
         </div>
 
         {/* Description */}
-        <div style={{ marginBottom:18 }}>
-          <label style={{ color:'#fff', fontSize:15, fontWeight:700, display:'block', marginBottom:8 }}>Description</label>
+        <div style={{ marginBottom: 18 }}>
+          <label style={{ color: '#fff', fontSize: 15, fontWeight: 700, display: 'block', marginBottom: 8 }}>Description</label>
           <input value={form.description || ''} onChange={e => set({ description: e.target.value })}
             placeholder="Describe what this command does..." style={inp} />
         </div>
 
         {/* Command (response) */}
-        <div style={{ marginBottom:18 }}>
-          <label style={{ color:'#fff', fontSize:15, fontWeight:700, display:'block', marginBottom:8 }}>Command</label>
+        <div style={{ marginBottom: 18 }}>
+          <label style={{ color: '#fff', fontSize: 15, fontWeight: 700, display: 'block', marginBottom: 8 }}>Command</label>
           <textarea value={form.response} onChange={e => set({ response: e.target.value })} rows={5}
             placeholder={'Hello {user}!\nTip: Use {delete} to delete trigger, {silent} for no response, <a:emoji:id> for animated emojis'}
-            style={{ ...inp, resize:'vertical', fontFamily:'monospace', fontSize:13 }} />
+            style={{ ...inp, resize: 'vertical', fontFamily: 'monospace', fontSize: 13 }} />
         </div>
 
         {/* Embed preview if set */}
         {showEmbed && form.embed?.description && (
-          <div style={{ borderLeft:'4px solid #cc2222', background:'#1e1e24', borderRadius:'0 6px 6px 0', padding:'10px 14px', marginBottom:12, fontFamily:'monospace', fontSize:13, color:'#ccc' }}>
+          <div style={{ borderLeft: '4px solid #cc2222', background: '#1e1e24', borderRadius: '0 6px 6px 0', padding: '10px 14px', marginBottom: 12, fontFamily: 'monospace', fontSize: 13, color: '#ccc' }}>
             {form.embed.description}
           </div>
         )}
 
         {/* Add/Edit Embed + Remove */}
-        <div style={{ display:'flex', gap:16, marginBottom:18 }}>
+        <div style={{ display: 'flex', gap: 16, marginBottom: 18 }}>
           <button onClick={() => setShowEmbed(v => !v)}
-            style={{ background:'none', border:'none', color:'#cc2222', cursor:'pointer', fontSize:14, fontWeight:700, padding:0, display:'flex', alignItems:'center', gap:4 }}>
-            <span style={{ fontSize:16 }}>⊕</span> {showEmbed ? 'Edit Embed' : 'Add/Edit Embed'}
+            style={{ background: 'none', border: 'none', color: '#cc2222', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 16 }}>⊕</span> {showEmbed ? 'Edit Embed' : 'Add/Edit Embed'}
           </button>
           {showEmbed && (
-            <button onClick={() => { setShowEmbed(false); setEmb({ title:'', description:'', footer:'', thumbnail:'' }) }}
-              style={{ background:'none', border:'none', color:'#cc2222', cursor:'pointer', fontSize:14, fontWeight:700, padding:0, display:'flex', alignItems:'center', gap:4 }}>
-              <span style={{ fontSize:16 }}>⊖</span> Remove Embed
+            <button onClick={() => { setShowEmbed(false); setEmb({ title: '', description: '', footer: '', thumbnail: '' }) }}
+              style={{ background: 'none', border: 'none', color: '#cc2222', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ fontSize: 16 }}>⊖</span> Remove Embed
             </button>
           )}
         </div>
 
         {/* Embed editor */}
         {showEmbed && (
-          <div style={{ background:'#1a1a22', border:'1px solid #2a2a35', borderRadius:8, padding:16, marginBottom:18, display:'flex', flexDirection:'column', gap:12 }}>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div style={{ background: '#1a1a22', border: '1px solid #2a2a35', borderRadius: 8, padding: 16, marginBottom: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
-                <label style={{ color:'#aaa', fontSize:11, fontWeight:700, textTransform:'uppercase', display:'block', marginBottom:5 }}>Title</label>
-                <input value={form.embed.title||''} onChange={e => setEmb({ title:e.target.value })} style={inp} placeholder="Optional title" />
+                <label style={{ color: '#aaa', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>Title</label>
+                <input value={form.embed.title || ''} onChange={e => setEmb({ title: e.target.value })} style={inp} placeholder="Optional title" />
               </div>
               <div>
-                <label style={{ color:'#aaa', fontSize:11, fontWeight:700, textTransform:'uppercase', display:'block', marginBottom:5 }}>Color</label>
-                <div style={{ display:'flex', gap:6 }}>
-                  <input type="color" value={form.embed.color||'#cc2222'} onChange={e => setEmb({ color:e.target.value })}
-                    style={{ width:38, height:38, border:'1px solid #333', borderRadius:6, cursor:'pointer', background:'none', padding:2 }} />
-                  <input value={form.embed.color||''} onChange={e => setEmb({ color:e.target.value })} style={{ ...inp, flex:1 }} />
+                <label style={{ color: '#aaa', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>Color</label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input type="color" value={form.embed.color || '#cc2222'} onChange={e => setEmb({ color: e.target.value })}
+                    style={{ width: 38, height: 38, border: '1px solid #333', borderRadius: 6, cursor: 'pointer', background: 'none', padding: 2 }} />
+                  <input value={form.embed.color || ''} onChange={e => setEmb({ color: e.target.value })} style={{ ...inp, flex: 1 }} />
                 </div>
               </div>
             </div>
             <div>
-              <label style={{ color:'#aaa', fontSize:11, fontWeight:700, textTransform:'uppercase', display:'block', marginBottom:5 }}>Description *</label>
-              <textarea value={form.embed.description||''} onChange={e => setEmb({ description:e.target.value })} rows={3}
-                style={{ ...inp, resize:'vertical', fontFamily:'monospace', fontSize:13 }} placeholder="Embed body text..." />
+              <label style={{ color: '#aaa', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>Description *</label>
+              <textarea value={form.embed.description || ''} onChange={e => setEmb({ description: e.target.value })} rows={3}
+                style={{ ...inp, resize: 'vertical', fontFamily: 'monospace', fontSize: 13 }} placeholder="Embed body text..." />
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
-                <label style={{ color:'#aaa', fontSize:11, fontWeight:700, textTransform:'uppercase', display:'block', marginBottom:5 }}>Footer</label>
-                <input value={form.embed.footer||''} onChange={e => setEmb({ footer:e.target.value })} style={inp} placeholder="Footer text" />
+                <label style={{ color: '#aaa', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>Footer</label>
+                <input value={form.embed.footer || ''} onChange={e => setEmb({ footer: e.target.value })} style={inp} placeholder="Footer text" />
               </div>
               <div>
-                <label style={{ color:'#aaa', fontSize:11, fontWeight:700, textTransform:'uppercase', display:'block', marginBottom:5 }}>Thumbnail</label>
-                <input value={form.embed.thumbnail||''} onChange={e => setEmb({ thumbnail:e.target.value })} style={inp} placeholder="{avatar} or URL" />
+                <label style={{ color: '#aaa', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>Thumbnail</label>
+                <input value={form.embed.thumbnail || ''} onChange={e => setEmb({ thumbnail: e.target.value })} style={inp} placeholder="{avatar} or URL" />
               </div>
             </div>
           </div>
@@ -2127,11 +2152,11 @@ function CCModal({ cmd, onSave, onClose, channels, roles }) {
         {/* Options section */}
         <SectionHeader id="options" label="Options" />
         {openSections.options && (
-          <div style={{ marginBottom:12 }}>
-            <div style={{ display:'flex', gap:10, marginBottom:10, flexWrap:'wrap' }}>
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
               <CCCheck field="delete_trigger" label="Delete Command" />
-              <CCCheck field="silent"         label="Silent Command" />
-              <CCCheck field="dm_response"    label="DM Response" />
+              <CCCheck field="silent" label="Silent Command" />
+              <CCCheck field="dm_response" label="DM Response" />
             </div>
             <CCCheck field="noeveryone" label="Disable @everyone, @here and role pings" />
           </div>
@@ -2140,11 +2165,11 @@ function CCModal({ cmd, onSave, onClose, channels, roles }) {
         {/* Permissions section */}
         <SectionHeader id="permissions" label="Permissions (optional)" />
         {openSections.permissions && (
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:12 }}>
-            {[['allowed_roles','Allowed Roles',roles,''],['ignored_roles','Ignored Roles',roles,''],['ignored_channels','Ignored Channels',channels,'#']].map(([k,l,items,pfx]) => (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
+            {[['allowed_roles', 'Allowed Roles', roles, ''], ['ignored_roles', 'Ignored Roles', roles, ''], ['ignored_channels', 'Ignored Channels', channels, '#']].map(([k, l, items, pfx]) => (
               <div key={k}>
-                <label style={{ color:'#aaa', fontSize:11, fontWeight:700, textTransform:'uppercase', display:'block', marginBottom:5 }}>{l}</label>
-                <MultiSelectDropdown items={items} selected={form[k]||[]} onChange={v => set({ [k]:v })} placeholder="None" prefix={pfx} />
+                <label style={{ color: '#aaa', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>{l}</label>
+                <MultiSelectDropdown items={items} selected={form[k] || []} onChange={v => set({ [k]: v })} placeholder="None" prefix={pfx} />
               </div>
             ))}
           </div>
@@ -2153,19 +2178,19 @@ function CCModal({ cmd, onSave, onClose, channels, roles }) {
         {/* Advanced Options */}
         <SectionHeader id="advanced" label="Advanced Options (optional)" />
         {openSections.advanced && (
-          <div style={{ marginBottom:12, display:'flex', alignItems:'center', gap:10 }}>
-            <label style={{ color:'#aaa', fontSize:13 }}>Cooldown (seconds)</label>
-            <input type="number" min={0} value={form.cooldown||0} onChange={e => set({ cooldown: parseInt(e.target.value)||0 })}
-              style={{ ...inp, width:80 }} />
+          <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <label style={{ color: '#aaa', fontSize: 13 }}>Cooldown (seconds)</label>
+            <input type="number" min={0} value={form.cooldown || 0} onChange={e => set({ cooldown: parseInt(e.target.value) || 0 })}
+              style={{ ...inp, width: 80 }} />
           </div>
         )}
 
-        <div style={{ height:1, background:'#2a2a35', margin:'16px 0' }} />
+        <div style={{ height: 1, background: '#2a2a35', margin: '16px 0' }} />
 
         {/* Save button */}
-        <div style={{ display:'flex', gap:10 }}>
-          <button onClick={() => { if(form.trigger) onSave(form) }} disabled={!form.trigger}
-            style={{ background: form.trigger ? '#cc2222' : '#333', color:'#fff', border:'none', borderRadius:6, padding:'11px 28px', fontSize:14, fontWeight:700, cursor: form.trigger ? 'pointer' : 'not-allowed' }}>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => { if (form.trigger) onSave(form) }} disabled={!form.trigger}
+            style={{ background: form.trigger ? '#cc2222' : '#333', color: '#fff', border: 'none', borderRadius: 6, padding: '11px 28px', fontSize: 14, fontWeight: 700, cursor: form.trigger ? 'pointer' : 'not-allowed' }}>
             {isEdit ? 'Save Command' : 'Save Command'}
           </button>
         </div>
@@ -2175,12 +2200,12 @@ function CCModal({ cmd, onSave, onClose, channels, roles }) {
 }
 
 function CustomCommandsPanel({ guildId }) {
-  const [cmds,     setCmds]     = React.useState([])
+  const [cmds, setCmds] = React.useState([])
   const [channels, setChannels] = React.useState([])
-  const [roles,    setRoles]    = React.useState([])
-  const [loading,  setLoading]  = React.useState(true)
-  const [modal,    setModal]    = React.useState(null)  // null | 'add' | cmd object
-  const [search,   setSearch]   = React.useState('')
+  const [roles, setRoles] = React.useState([])
+  const [loading, setLoading] = React.useState(true)
+  const [modal, setModal] = React.useState(null)  // null | 'add' | cmd object
+  const [search, setSearch] = React.useState('')
 
   const load = React.useCallback(() => {
     if (!guildId) return
@@ -2225,67 +2250,67 @@ function CustomCommandsPanel({ guildId }) {
     !search || c.trigger.includes(search.toLowerCase()) || c.response.toLowerCase().includes(search.toLowerCase())
   )
 
-  if (loading) return <div style={{ display:'flex', flexDirection:'column', gap:10 }}>{[...Array(4)].map((_,i) => <div key={i} style={{ height:52, borderRadius:8, background:'#1e1e24' }} />)}</div>
+  if (loading) return <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{[...Array(4)].map((_, i) => <div key={i} style={{ height: 52, borderRadius: 8, background: '#1e1e24' }} />)}</div>
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth:960 }}>
+    <div className="animate-fade-in" style={{ maxWidth: 960 }}>
       {/* Header */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20, flexWrap:'wrap', gap:12 }}>
-        <h2 style={{ color:'#fff', margin:0, fontSize:22, fontWeight:800 }}>
-          <span style={{ color:'#cc2222' }}>Modules</span> / Custom Commands
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <h2 style={{ color: '#fff', margin: 0, fontSize: 22, fontWeight: 800 }}>
+          <span style={{ color: '#cc2222' }}>Modules</span> / Custom Commands
         </h2>
         <button onClick={() => setModal('add')}
-          style={{ background:'#cc2222', color:'#fff', border:'none', borderRadius:6, padding:'9px 20px', fontSize:14, fontWeight:700, cursor:'pointer' }}>
+          style={{ background: '#cc2222', color: '#fff', border: 'none', borderRadius: 6, padding: '9px 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
           + Add Command
         </button>
       </div>
 
       {/* Search */}
-      <div style={{ position:'relative', marginBottom:16 }}>
-        <Search size={13} style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', color:'#555' }} />
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <Search size={13} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#555' }} />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search commands..."
-          style={{ width:'100%', background:'#1e1e24', border:'1px solid #2a2a35', borderRadius:8, padding:'11px 12px 11px 34px', color:'#ccc', fontSize:14, outline:'none', boxSizing:'border-box' }} />
+          style={{ width: '100%', background: '#1e1e24', border: '1px solid #2a2a35', borderRadius: 8, padding: '11px 12px 11px 34px', color: '#ccc', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
       </div>
 
       {/* Commands table */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign:'center', padding:'60px 0', color:'#555' }}>
-          <p style={{ fontSize:15 }}>No custom commands yet. Click "+ Add Command" to create one.</p>
+        <div style={{ textAlign: 'center', padding: '60px 0', color: '#555' }}>
+          <p style={{ fontSize: 15 }}>No custom commands yet. Click "+ Add Command" to create one.</p>
         </div>
       ) : (
-        <div style={{ background:'#1e1e24', border:'1px solid #2a2a35', borderRadius:10, overflow:'hidden' }}>
+        <div style={{ background: '#1e1e24', border: '1px solid #2a2a35', borderRadius: 10, overflow: 'hidden' }}>
           {/* Table header */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr 80px 100px', gap:0, padding:'10px 16px', borderBottom:'1px solid #2a2a35' }}>
-            {['COMMAND','RESPONSE','ENABLED','ACTIONS'].map(h => (
-              <span key={h} style={{ color:'#555', fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 80px 100px', gap: 0, padding: '10px 16px', borderBottom: '1px solid #2a2a35' }}>
+            {['COMMAND', 'RESPONSE', 'ENABLED', 'ACTIONS'].map(h => (
+              <span key={h} style={{ color: '#555', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</span>
             ))}
           </div>
           {filtered.map((cmd, i) => (
             <div key={cmd.trigger} style={{
-              display:'grid', gridTemplateColumns:'1fr 2fr 80px 100px', gap:0,
-              padding:'12px 16px', borderTop: i===0 ? 'none' : '1px solid #2a2a35',
-              transition:'background 0.1s',
+              display: 'grid', gridTemplateColumns: '1fr 2fr 80px 100px', gap: 0,
+              padding: '12px 16px', borderTop: i === 0 ? 'none' : '1px solid #2a2a35',
+              transition: 'background 0.1s',
             }}
-              onMouseEnter={e => e.currentTarget.style.background='#252530'}
-              onMouseLeave={e => e.currentTarget.style.background='transparent'}
+              onMouseEnter={e => e.currentTarget.style.background = '#252530'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <span style={{ color:'#cc2222', fontFamily:'monospace', fontSize:13, fontWeight:700, alignSelf:'center' }}>?{cmd.trigger}</span>
-              <span style={{ color:'#aaa', fontSize:12, alignSelf:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', paddingRight:12 }}>
+              <span style={{ color: '#cc2222', fontFamily: 'monospace', fontSize: 13, fontWeight: 700, alignSelf: 'center' }}>?{cmd.trigger}</span>
+              <span style={{ color: '#aaa', fontSize: 12, alignSelf: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 12 }}>
                 {cmd.response || (cmd.embed?.description ? '[embed]' : '—')}
               </span>
-              <div style={{ alignSelf:'center' }}>
+              <div style={{ alignSelf: 'center' }}>
                 <button onClick={() => handleToggle(cmd)}
-                  style={{ width:32, height:18, borderRadius:9, border:'none', cursor:'pointer', background: cmd.enabled ? '#00c896' : '#444', position:'relative', transition:'background 0.2s' }}>
-                  <span style={{ position:'absolute', top:2, left: cmd.enabled ? 15 : 2, width:14, height:14, borderRadius:'50%', background:'#fff', transition:'left 0.2s' }} />
+                  style={{ width: 32, height: 18, borderRadius: 9, border: 'none', cursor: 'pointer', background: cmd.enabled ? '#00c896' : '#444', position: 'relative', transition: 'background 0.2s' }}>
+                  <span style={{ position: 'absolute', top: 2, left: cmd.enabled ? 15 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
                 </button>
               </div>
-              <div style={{ display:'flex', gap:6, alignSelf:'center' }}>
+              <div style={{ display: 'flex', gap: 6, alignSelf: 'center' }}>
                 <button onClick={() => setModal(cmd)}
-                  style={{ background:'#2a2a35', border:'1px solid #444', borderRadius:5, padding:'4px 10px', color:'#cc2222', fontSize:11, fontWeight:700, cursor:'pointer' }}>
+                  style={{ background: '#2a2a35', border: '1px solid #444', borderRadius: 5, padding: '4px 10px', color: '#cc2222', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                   <Settings size={11} />
                 </button>
                 <button onClick={() => handleDelete(cmd.trigger)}
-                  style={{ background:'#2a2a35', border:'1px solid #444', borderRadius:5, padding:'4px 10px', color:'#cc2222', fontSize:11, fontWeight:700, cursor:'pointer' }}>
+                  style={{ background: '#2a2a35', border: '1px solid #444', borderRadius: 5, padding: '4px 10px', color: '#cc2222', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                   <X size={11} />
                 </button>
               </div>
@@ -2295,13 +2320,13 @@ function CustomCommandsPanel({ guildId }) {
       )}
 
       {/* Variables reference */}
-      <div style={{ background:'#1e1e24', border:'1px solid #2a2a35', borderRadius:8, padding:20, marginTop:16 }}>
-        <p style={{ color:'#aaa', fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 14px' }}>Variable Reference</p>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'4px 20px' }}>
-          {CC_VARS.map(([v,d]) => (
-            <div key={v} style={{ display:'flex', gap:8, padding:'3px 0' }}>
-              <code style={{ color:'#cc2222', fontSize:11, fontWeight:700, minWidth:160, flexShrink:0 }}>{v}</code>
-              <span style={{ color:'#666', fontSize:11 }}>— {d}</span>
+      <div style={{ background: '#1e1e24', border: '1px solid #2a2a35', borderRadius: 8, padding: 20, marginTop: 16 }}>
+        <p style={{ color: '#aaa', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 14px' }}>Variable Reference</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 20px' }}>
+          {CC_VARS.map(([v, d]) => (
+            <div key={v} style={{ display: 'flex', gap: 8, padding: '3px 0' }}>
+              <code style={{ color: '#cc2222', fontSize: 11, fontWeight: 700, minWidth: 160, flexShrink: 0 }}>{v}</code>
+              <span style={{ color: '#666', fontSize: 11 }}>— {d}</span>
             </div>
           ))}
         </div>
@@ -2322,15 +2347,15 @@ function CustomCommandsPanel({ guildId }) {
 
 // ── Auto Responder ────────────────────────────────────────────────────────────
 const AR_VARS = [
-  ['{user}',      'Mention the user. Eg: Hello {user}!'],
-  ['{username}',  'Display name of the user'],
-  ['{avatar}',    'User avatar URL'],
-  ['{server}',    'Server name'],
-  ['{channel}',   'Current channel mention'],
-  ['{everyone}',  '@everyone'],
-  ['{here}',      '@here'],
+  ['{user}', 'Mention the user. Eg: Hello {user}!'],
+  ['{username}', 'Display name of the user'],
+  ['{avatar}', 'User avatar URL'],
+  ['{server}', 'Server name'],
+  ['{channel}', 'Current channel mention'],
+  ['{everyone}', '@everyone'],
+  ['{here}', '@here'],
   ['{&RoleName}', 'Mention a role by name. Eg: {&Mods}'],
-  ['{#channel}',  'Link a channel by name. Eg: {#general}'],
+  ['{#channel}', 'Link a channel by name. Eg: {#general}'],
 ]
 
 const AR_DEFAULT = {
@@ -2358,8 +2383,8 @@ function ARModal({ ar, onSave, onClose, channels, roles }) {
   }
 
   const TYPES = [
-    { id: 'message',  label: 'Message Response' },
-    { id: 'embed',    label: 'Embed Response'   },
+    { id: 'message', label: 'Message Response' },
+    { id: 'embed', label: 'Embed Response' },
     { id: 'reaction', label: 'Reaction Response' },
   ]
 
@@ -2478,8 +2503,8 @@ function ARModal({ ar, onSave, onClose, channels, roles }) {
           {[
             ['allowed_channels', 'Allowed Channels', channels, '#'],
             ['ignored_channels', 'Ignored Channels', channels, '#'],
-            ['allowed_roles',    'Allowed Roles',    roles,    ''],
-            ['ignored_roles',    'Ignored Roles',    roles,    ''],
+            ['allowed_roles', 'Allowed Roles', roles, ''],
+            ['ignored_roles', 'Ignored Roles', roles, ''],
           ].map(([key, label, items, prefix]) => (
             <div key={key}>
               <label style={{ color: '#aaa', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: 5 }}>{label}</label>
@@ -2495,7 +2520,7 @@ function ARModal({ ar, onSave, onClose, channels, roles }) {
               onClick={() => set({ wildcard: !form.wildcard })}
               style={{ width: 16, height: 16, borderRadius: 3, border: `2px solid ${form.wildcard ? '#cc2222' : '#555'}`, background: form.wildcard ? '#cc2222' : 'transparent', cursor: 'pointer', flexShrink: 0, marginTop: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              {form.wildcard && <svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4L3.5 6.5L9 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>}
+              {form.wildcard && <svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4L3.5 6.5L9 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>}
             </span>
             <div>
               <span style={{ color: '#ccc', fontSize: 13, fontWeight: 600 }}>Wildcard</span>
@@ -2532,12 +2557,12 @@ function ARModal({ ar, onSave, onClose, channels, roles }) {
 }
 
 function AutoResponderPanel({ guildId }) {
-  const [ars,      setArs]      = React.useState([])
+  const [ars, setArs] = React.useState([])
   const [channels, setChannels] = React.useState([])
-  const [roles,    setRoles]    = React.useState([])
-  const [loading,  setLoading]  = React.useState(true)
-  const [modal,    setModal]    = React.useState(null)  // null | 'add' | ar object
-  const [search,   setSearch]   = React.useState('')
+  const [roles, setRoles] = React.useState([])
+  const [loading, setLoading] = React.useState(true)
+  const [modal, setModal] = React.useState(null)  // null | 'add' | ar object
+  const [search, setSearch] = React.useState('')
 
   const load = React.useCallback(() => {
     if (!guildId) return
@@ -2697,14 +2722,14 @@ function AutoResponderPanel({ guildId }) {
 // ── Giveaways ─────────────────────────────────────────────────────────────────
 function GiveawaysPanel({ guildId }) {
   const [giveaways, setGiveaways] = React.useState([])
-  const [settings,  setSettings]  = React.useState({ manager_role: null, multipliers: [] })
-  const [roles,     setRoles]     = React.useState([])
-  const [loading,   setLoading]   = React.useState(true)
-  const [saving,    setSaving]    = React.useState(false)
-  const [tab,       setTab]       = React.useState('active')
+  const [settings, setSettings] = React.useState({ manager_role: null, multipliers: [] })
+  const [roles, setRoles] = React.useState([])
+  const [loading, setLoading] = React.useState(true)
+  const [saving, setSaving] = React.useState(false)
+  const [tab, setTab] = React.useState('active')
 
-  const S = { bg:'#16161e', card:'#1e1e24', border:'#2a2a35', text1:'#fff', text2:'#aaa', text3:'#ccc', accent:'#cc2222' }
-  const inp = { background:S.card, border:`1px solid #333`, borderRadius:6, padding:'9px 12px', color:S.text3, fontSize:13, outline:'none', width:'100%', boxSizing:'border-box' }
+  const S = { bg: '#16161e', card: '#1e1e24', border: '#2a2a35', text1: '#fff', text2: '#aaa', text3: '#ccc', accent: '#cc2222' }
+  const inp = { background: S.card, border: `1px solid #333`, borderRadius: 6, padding: '9px 12px', color: S.text3, fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box' }
 
   const load = React.useCallback(() => {
     if (!guildId) return
@@ -2749,28 +2774,30 @@ function GiveawaysPanel({ guildId }) {
   }
 
   const active = giveaways.filter(g => g.status === 'running')
-  const ended  = giveaways.filter(g => g.status !== 'running')
+  const ended = giveaways.filter(g => g.status !== 'running')
 
   function fmtTime(ts) {
     if (!ts) return '—'
     return new Date(ts * 1000).toLocaleString()
   }
 
-  if (loading) return <div style={{ display:'flex', flexDirection:'column', gap:12 }}>{[...Array(3)].map((_,i) => <div key={i} style={{ height:60, borderRadius:8, background:S.card }} />)}</div>
+  if (loading) return <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{[...Array(3)].map((_, i) => <div key={i} style={{ height: 60, borderRadius: 8, background: S.card }} />)}</div>
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth:960 }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20, flexWrap:'wrap', gap:12 }}>
-        <h2 style={{ color:S.text1, margin:0, fontSize:22, fontWeight:800 }}>
-          <span style={{ color:S.accent }}>Modules</span> / Giveaways
+    <div className="animate-fade-in" style={{ maxWidth: 960 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <h2 style={{ color: S.text1, margin: 0, fontSize: 22, fontWeight: 800 }}>
+          <span style={{ color: S.accent }}>Modules</span> / Giveaways
         </h2>
-        <div style={{ display:'flex', gap:6 }}>
-          {[['active','Active'],['ended','Ended'],['settings','Settings']].map(([id,label]) => (
+        <div style={{ display: 'flex', gap: 6 }}>
+          {[['active', 'Active'], ['ended', 'Ended'], ['settings', 'Settings']].map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)}
-              style={{ padding:'7px 16px', borderRadius:20, fontSize:13, fontWeight:600, cursor:'pointer', transition:'all 0.15s',
-                background: tab===id ? S.accent : 'transparent',
-                border: `1px solid ${tab===id ? S.accent : '#444'}`,
-                color: tab===id ? '#fff' : S.text2 }}>
+              style={{
+                padding: '7px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
+                background: tab === id ? S.accent : 'transparent',
+                border: `1px solid ${tab === id ? S.accent : '#444'}`,
+                color: tab === id ? '#fff' : S.text2
+              }}>
               {label}
             </button>
           ))}
@@ -2781,49 +2808,49 @@ function GiveawaysPanel({ guildId }) {
       {tab === 'active' && (
         <div>
           {active.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'60px 0', color:'#555' }}>
-              <p style={{ fontSize:15 }}>No active giveaways. Use <code style={{ color:S.accent }}>/gstart</code> in Discord to create one.</p>
+            <div style={{ textAlign: 'center', padding: '60px 0', color: '#555' }}>
+              <p style={{ fontSize: 15 }}>No active giveaways. Use <code style={{ color: S.accent }}>/gstart</code> in Discord to create one.</p>
             </div>
           ) : (
-            <div style={{ background:S.card, border:`1px solid ${S.border}`, borderRadius:10, overflow:'hidden' }}>
-              <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 120px', padding:'10px 16px', borderBottom:`1px solid ${S.border}` }}>
-                {['PRIZE','WINNERS','ENTRIES','ENDS','ACTIONS'].map(h => (
-                  <span key={h} style={{ color:'#555', fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</span>
+            <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 10, overflow: 'hidden' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 120px', padding: '10px 16px', borderBottom: `1px solid ${S.border}` }}>
+                {['PRIZE', 'WINNERS', 'ENTRIES', 'ENDS', 'ACTIONS'].map(h => (
+                  <span key={h} style={{ color: '#555', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</span>
                 ))}
               </div>
               {active.map((g, i) => (
-                <div key={g.message_id} style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 120px', padding:'12px 16px', borderTop: i===0?'none':`1px solid ${S.border}`, alignItems:'center' }}
-                  onMouseEnter={e => e.currentTarget.style.background='#252530'}
-                  onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                <div key={g.message_id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 120px', padding: '12px 16px', borderTop: i === 0 ? 'none' : `1px solid ${S.border}`, alignItems: 'center' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#252530'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <div>
-                    <p style={{ margin:0, color:S.text1, fontSize:13, fontWeight:600 }}>🎉 {g.prize}</p>
-                    <p style={{ margin:0, color:'#555', fontSize:11 }}>ID: {g.message_id}</p>
+                    <p style={{ margin: 0, color: S.text1, fontSize: 13, fontWeight: 600 }}>🎉 {g.prize}</p>
+                    <p style={{ margin: 0, color: '#555', fontSize: 11 }}>ID: {g.message_id}</p>
                   </div>
-                  <span style={{ color:S.text3, fontSize:13 }}>{g.winners}</span>
-                  <span style={{ color:S.text3, fontSize:13 }}>—</span>
-                  <span style={{ color:S.text2, fontSize:12 }}>{fmtTime(g.end_time)}</span>
-                  <div style={{ display:'flex', gap:6 }}>
+                  <span style={{ color: S.text3, fontSize: 13 }}>{g.winners}</span>
+                  <span style={{ color: S.text3, fontSize: 13 }}>—</span>
+                  <span style={{ color: S.text2, fontSize: 12 }}>{fmtTime(g.end_time)}</span>
+                  <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => handleEnd(g.message_id)}
-                      style={{ background:'#2a2a35', border:'1px solid #444', borderRadius:5, padding:'4px 10px', color:S.accent, fontSize:11, fontWeight:700, cursor:'pointer' }}>
+                      style={{ background: '#2a2a35', border: '1px solid #444', borderRadius: 5, padding: '4px 10px', color: S.accent, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                       End
                     </button>
                     <button onClick={() => handleDelete(g.message_id)}
-                      style={{ background:'#2a2a35', border:'1px solid #444', borderRadius:5, padding:'4px 10px', color:S.accent, fontSize:11, fontWeight:700, cursor:'pointer' }}>
-                      <X size={11}/>
+                      style={{ background: '#2a2a35', border: '1px solid #444', borderRadius: 5, padding: '4px 10px', color: S.accent, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                      <X size={11} />
                     </button>
                   </div>
                 </div>
               ))}
             </div>
           )}
-          <div style={{ marginTop:16, padding:14, background:S.card, border:`1px solid ${S.border}`, borderRadius:8 }}>
-            <p style={{ color:S.text2, fontSize:13, margin:0 }}>
+          <div style={{ marginTop: 16, padding: 14, background: S.card, border: `1px solid ${S.border}`, borderRadius: 8 }}>
+            <p style={{ color: S.text2, fontSize: 13, margin: 0 }}>
               Use Discord slash commands to manage giveaways:
-              <code style={{ color:S.accent, marginLeft:8 }}>/gstart</code>
-              <code style={{ color:S.accent, marginLeft:8 }}>/gend</code>
-              <code style={{ color:S.accent, marginLeft:8 }}>/greroll</code>
-              <code style={{ color:S.accent, marginLeft:8 }}>/gdel</code>
-              <code style={{ color:S.accent, marginLeft:8 }}>/glist</code>
+              <code style={{ color: S.accent, marginLeft: 8 }}>/gstart</code>
+              <code style={{ color: S.accent, marginLeft: 8 }}>/gend</code>
+              <code style={{ color: S.accent, marginLeft: 8 }}>/greroll</code>
+              <code style={{ color: S.accent, marginLeft: 8 }}>/gdel</code>
+              <code style={{ color: S.accent, marginLeft: 8 }}>/glist</code>
             </p>
           </div>
         </div>
@@ -2833,26 +2860,26 @@ function GiveawaysPanel({ guildId }) {
       {tab === 'ended' && (
         <div>
           {ended.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'60px 0', color:'#555' }}>
-              <p style={{ fontSize:15 }}>No ended giveaways.</p>
+            <div style={{ textAlign: 'center', padding: '60px 0', color: '#555' }}>
+              <p style={{ fontSize: 15 }}>No ended giveaways.</p>
             </div>
           ) : (
-            <div style={{ background:S.card, border:`1px solid ${S.border}`, borderRadius:10, overflow:'hidden' }}>
-              <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 80px', padding:'10px 16px', borderBottom:`1px solid ${S.border}` }}>
-                {['PRIZE','WINNERS','ENDED',''].map(h => (
-                  <span key={h} style={{ color:'#555', fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</span>
+            <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 10, overflow: 'hidden' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 80px', padding: '10px 16px', borderBottom: `1px solid ${S.border}` }}>
+                {['PRIZE', 'WINNERS', 'ENDED', ''].map(h => (
+                  <span key={h} style={{ color: '#555', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</span>
                 ))}
               </div>
               {ended.map((g, i) => (
-                <div key={g.message_id} style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 80px', padding:'12px 16px', borderTop: i===0?'none':`1px solid ${S.border}`, alignItems:'center' }}
-                  onMouseEnter={e => e.currentTarget.style.background='#252530'}
-                  onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                  <p style={{ margin:0, color:'#666', fontSize:13 }}>🎁 {g.prize}</p>
-                  <span style={{ color:'#666', fontSize:13 }}>{g.winners}</span>
-                  <span style={{ color:'#555', fontSize:12 }}>{fmtTime(g.end_time)}</span>
+                <div key={g.message_id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 80px', padding: '12px 16px', borderTop: i === 0 ? 'none' : `1px solid ${S.border}`, alignItems: 'center' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#252530'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <p style={{ margin: 0, color: '#666', fontSize: 13 }}>🎁 {g.prize}</p>
+                  <span style={{ color: '#666', fontSize: 13 }}>{g.winners}</span>
+                  <span style={{ color: '#555', fontSize: 12 }}>{fmtTime(g.end_time)}</span>
                   <button onClick={() => handleDelete(g.message_id)}
-                    style={{ background:'#2a2a35', border:'1px solid #444', borderRadius:5, padding:'4px 10px', color:S.accent, fontSize:11, fontWeight:700, cursor:'pointer' }}>
-                    <X size={11}/>
+                    style={{ background: '#2a2a35', border: '1px solid #444', borderRadius: 5, padding: '4px 10px', color: S.accent, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                    <X size={11} />
                   </button>
                 </div>
               ))}
@@ -2863,52 +2890,52 @@ function GiveawaysPanel({ guildId }) {
 
       {/* Settings */}
       {tab === 'settings' && (
-        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Manager Role */}
-          <div style={{ background:S.card, border:`1px solid ${S.border}`, borderRadius:8, padding:20 }}>
-            <p style={{ color:S.text1, fontSize:14, fontWeight:700, margin:'0 0 4px' }}>Giveaway Manager Role</p>
-            <p style={{ color:S.text2, fontSize:12, margin:'0 0 12px' }}>Members with this role can create and manage giveaways.</p>
+          <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 20 }}>
+            <p style={{ color: S.text1, fontSize: 14, fontWeight: 700, margin: '0 0 4px' }}>Giveaway Manager Role</p>
+            <p style={{ color: S.text2, fontSize: 12, margin: '0 0 12px' }}>Members with this role can create and manage giveaways.</p>
             <select value={settings.manager_role || ''} onChange={e => setSettings(p => ({ ...p, manager_role: e.target.value || null }))}
-              style={{ ...inp, maxWidth:300 }}>
+              style={{ ...inp, maxWidth: 300 }}>
               <option value="">Select a role...</option>
               {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
           </div>
 
           {/* Entry Multipliers */}
-          <div style={{ background:S.card, border:`1px solid ${S.border}`, borderRadius:8, padding:20 }}>
-            <p style={{ color:S.text1, fontSize:14, fontWeight:700, margin:'0 0 4px' }}>Entry Multipliers</p>
-            <p style={{ color:S.text2, fontSize:12, margin:'0 0 14px' }}>Give certain roles bonus entries in giveaways.</p>
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 20 }}>
+            <p style={{ color: S.text1, fontSize: 14, fontWeight: 700, margin: '0 0 4px' }}>Entry Multipliers</p>
+            <p style={{ color: S.text2, fontSize: 12, margin: '0 0 14px' }}>Give certain roles bonus entries in giveaways.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {settings.multipliers.map((m, i) => (
-                <div key={i} style={{ display:'flex', gap:10, alignItems:'center' }}>
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <select value={m.role_id || ''} onChange={e => setMultiplier(i, { role_id: e.target.value })}
-                    style={{ ...inp, flex:2 }}>
+                    style={{ ...inp, flex: 2 }}>
                     <option value="">Select role...</option>
                     {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
-                  <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
-                    <span style={{ color:S.text2, fontSize:13 }}>×</span>
-                    <input type="number" min={2} max={10} value={m.multiplier} onChange={e => setMultiplier(i, { multiplier: parseInt(e.target.value)||2 })}
-                      style={{ ...inp, width:70 }} />
-                    <span style={{ color:S.text2, fontSize:12 }}>entries</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    <span style={{ color: S.text2, fontSize: 13 }}>×</span>
+                    <input type="number" min={2} max={10} value={m.multiplier} onChange={e => setMultiplier(i, { multiplier: parseInt(e.target.value) || 2 })}
+                      style={{ ...inp, width: 70 }} />
+                    <span style={{ color: S.text2, fontSize: 12 }}>entries</span>
                   </div>
                   <button onClick={() => removeMultiplier(i)}
-                    style={{ background:'none', border:'none', color:'#555', cursor:'pointer', padding:4 }}>
-                    <X size={14}/>
+                    style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', padding: 4 }}>
+                    <X size={14} />
                   </button>
                 </div>
               ))}
               <button onClick={addMultiplier}
-                style={{ background:'none', border:`1px dashed #444`, borderRadius:6, padding:'8px 16px', color:S.text2, fontSize:13, cursor:'pointer', alignSelf:'flex-start' }}>
+                style={{ background: 'none', border: `1px dashed #444`, borderRadius: 6, padding: '8px 16px', color: S.text2, fontSize: 13, cursor: 'pointer', alignSelf: 'flex-start' }}>
                 + Add Multiplier
               </button>
             </div>
           </div>
 
-          <div style={{ display:'flex', justifyContent:'flex-end' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button onClick={saveSettings} disabled={saving}
-              style={{ background: saving ? '#333' : S.accent, color:'#fff', border:'none', borderRadius:6, padding:'9px 28px', fontSize:14, fontWeight:700, cursor: saving ? 'not-allowed' : 'pointer' }}>
+              style={{ background: saving ? '#333' : S.accent, color: '#fff', border: 'none', borderRadius: 6, padding: '9px 28px', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer' }}>
               {saving ? 'Saving…' : 'Save Settings'}
             </button>
           </div>
@@ -2920,14 +2947,14 @@ function GiveawaysPanel({ guildId }) {
 
 // ── Reaction Roles ────────────────────────────────────────────────────────────
 const RR = {
-  bg:      '#16161e',
-  card:    '#1e1e24',
-  card2:   '#2a2a35',
-  border:  '#3a3a4a',
-  accent:  '#cc2222',
-  btnBg:   '#540000',
-  text1:   '#f0f0f5',
-  text2:   '#9090a0',
+  bg: '#16161e',
+  card: '#1e1e24',
+  card2: '#2a2a35',
+  border: '#3a3a4a',
+  accent: '#cc2222',
+  btnBg: '#540000',
+  text1: '#f0f0f5',
+  text2: '#9090a0',
   textDis: '#555565',
 }
 
@@ -3115,16 +3142,16 @@ function RRCheckbox({ checked, onChange, label }) {
 }
 
 function ReactionRolesPanel({ guildId }) {
-  const [messages,  setMessages]  = React.useState([])
-  const [selected,  setSelected]  = React.useState(null)
-  const [form,      setForm]      = React.useState({ ...EMPTY_MSG, embed: { ...EMPTY_MSG.embed } })
-  const [channels,  setChannels]  = React.useState([])
-  const [roles,     setRoles]     = React.useState([])
+  const [messages, setMessages] = React.useState([])
+  const [selected, setSelected] = React.useState(null)
+  const [form, setForm] = React.useState({ ...EMPTY_MSG, embed: { ...EMPTY_MSG.embed } })
+  const [channels, setChannels] = React.useState([])
+  const [roles, setRoles] = React.useState([])
   const [serverEmojis, setServerEmojis] = React.useState([])
-  const [loading,   setLoading]   = React.useState(true)
-  const [saving,    setSaving]    = React.useState(false)
-  const [posting,   setPosting]   = React.useState(false)
-  const [optOpen,   setOptOpen]   = React.useState(false)
+  const [loading, setLoading] = React.useState(true)
+  const [saving, setSaving] = React.useState(false)
+  const [posting, setPosting] = React.useState(false)
+  const [optOpen, setOptOpen] = React.useState(false)
   const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false)
   const [emojiSearch, setEmojiSearch] = React.useState('')
   const emojiPickerRef = React.useRef(null)
@@ -3143,9 +3170,9 @@ function ReactionRolesPanel({ guildId }) {
   }, [])
 
   // New entry row state
-  const [newEmoji,  setNewEmoji]  = React.useState('')
-  const [newRole,   setNewRole]   = React.useState('')
-  const [newLabel,  setNewLabel]  = React.useState('')
+  const [newEmoji, setNewEmoji] = React.useState('')
+  const [newRole, setNewRole] = React.useState('')
+  const [newLabel, setNewLabel] = React.useState('')
 
   useEffect(() => {
     if (!guildId) return
@@ -3391,8 +3418,8 @@ function ReactionRolesPanel({ guildId }) {
                   <RRLabel>Message Type</RRLabel>
                   <RRRadioGroup
                     options={[
-                      { value: 'plain',    label: 'Plain Message' },
-                      { value: 'embed',    label: 'Embed Message' },
+                      { value: 'plain', label: 'Plain Message' },
+                      { value: 'embed', label: 'Embed Message' },
                       { value: 'existing', label: 'Existing Message' },
                     ]}
                     value={form.message_type}
@@ -3455,7 +3482,7 @@ function ReactionRolesPanel({ guildId }) {
                   <RRRadioGroup
                     options={[
                       { value: 'reactions', label: 'Reactions' },
-                      { value: 'buttons',   label: 'Buttons'   },
+                      { value: 'buttons', label: 'Buttons' },
                       { value: 'dropdowns', label: 'Dropdowns' },
                     ]}
                     value={form.selection_type}
@@ -3510,8 +3537,8 @@ function ReactionRolesPanel({ guildId }) {
                           }}>
                             {entry.emoji
                               ? (customEmojiUrl
-                                  ? <img src={customEmojiUrl} alt={entry.emoji} style={{ width: 22, height: 22, objectFit: 'contain' }} />
-                                  : <span>{entry.emoji}</span>)
+                                ? <img src={customEmojiUrl} alt={entry.emoji} style={{ width: 22, height: 22, objectFit: 'contain' }} />
+                                : <span>{entry.emoji}</span>)
                               : <span style={{ color: RR.textDis, fontSize: 13 }}>—</span>
                             }
                           </div>
@@ -3548,8 +3575,8 @@ function ReactionRolesPanel({ guildId }) {
                     >
                       {newEmoji
                         ? (newEmoji.startsWith('<')
-                            ? (() => { const m = newEmoji.match(/:(\d+)>$/); return m ? <img src={`https://cdn.discordapp.com/emojis/${m[1]}.webp?size=32`} alt="" style={{ width: 22, height: 22 }} /> : newEmoji })()
-                            : newEmoji)
+                          ? (() => { const m = newEmoji.match(/:(\d+)>$/); return m ? <img src={`https://cdn.discordapp.com/emojis/${m[1]}.webp?size=32`} alt="" style={{ width: 22, height: 22 }} /> : newEmoji })()
+                          : newEmoji)
                         : <span style={{ color: RR.accent, fontSize: 22, fontWeight: 700 }}>+</span>}
                     </button>
 
@@ -3590,11 +3617,11 @@ function ReactionRolesPanel({ guildId }) {
 
                         {/* Common unicode emojis */}
                         {[
-                          ['Smileys', ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😗','😙','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖']],
-                          ['Hands', ['👋','🤚','🖐','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🫀','🫁','🧠','🦷','🦴','👀','👁','👅','👄']],
-                          ['Animals', ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🦣','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🦬','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌','🐕','🐩','🦮','🐕‍🦺','🐈','🐈‍⬛','🪶','🐓','🦃','🦤','🦚','🦜','🦢','🦩','🕊','🐇','🦝','🦨','🦡','🦫','🦦','🦥','🐁','🐀','🐿','🦔']],
-                          ['Food', ['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶','🫑','🧄','🧅','🥔','🍠','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🫓','🥪','🥙','🧆','🌮','🌯','🫔','🥗','🥘','🫕','🥫','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🦪','🍤','🍙','🍚','🍘','🍥','🥮','🍢','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🧃','🥤','🧋','☕','🍵','🫖','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🧉','🍾','🧊']],
-                          ['Symbols', ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🚭','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱','⚜️','🔰','♻️','✅','🈯','💹','❎','🌐','💠','Ⓜ️','🌀','💤','🏧','🚾','♿','🅿️','🛗','🈳','🈹','🚺','🚹','🚼','⚧','🚻','🚮','🎦','📶','🈁','🔣','ℹ️','🔤','🔡','🔠','🆖','🆗','🆙','🆒','🆕','🆓','0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','🔢','#️⃣','*️⃣','⏏️','▶️','⏸','⏹','⏺','⏭','⏮','⏩','⏪','⏫','⏬','◀️','🔼','🔽','➡️','⬅️','⬆️','⬇️','↗️','↘️','↙️','↖️','↕️','↔️','↪️','↩️','⤴️','⤵️','🔀','🔁','🔂','🔄','🔃','🎵','🎶','➕','➖','➗','✖️','♾','💲','💱','™️','©️','®️','〰️','➰','➿','🔚','🔙','🔛','🔝','🔜','✔️','☑️','🔘','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔺','🔻','🔷','🔶','🔹','🔸','🔲','🔳','▪️','▫️','◾','◽','◼️','◻️','🟥','🟧','🟨','🟩','🟦','🟪','⬛','⬜','🟫','🔈','🔇','🔉','🔊','🔔','🔕','📣','📢','👁‍🗨','💬','💭','🗯','♠️','♣️','♥️','♦️','🃏','🎴','🀄','🎲','♟','🎭','🎨']],
+                          ['Smileys', ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '😉', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖']],
+                          ['Hands', ['👋', '🤚', '🖐', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🫀', '🫁', '🧠', '🦷', '🦴', '👀', '👁', '👅', '👄']],
+                          ['Animals', ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🦣', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🦬', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐕‍🦺', '🐈', '🐈‍⬛', '🪶', '🐓', '🦃', '🦤', '🦚', '🦜', '🦢', '🦩', '🕊', '🐇', '🦝', '🦨', '🦡', '🦫', '🦦', '🦥', '🐁', '🐀', '🐿', '🦔']],
+                          ['Food', ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶', '🫑', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🌭', '🍔', '🍟', '🍕', '🫓', '🥪', '🥙', '🧆', '🌮', '🌯', '🫔', '🥗', '🥘', '🫕', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥮', '🍢', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🌰', '🥜', '🍯', '🧃', '🥤', '🧋', '☕', '🍵', '🫖', '🍺', '🍻', '🥂', '🍷', '🥃', '🍸', '🍹', '🧉', '🍾', '🧊']],
+                          ['Symbols', ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🛗', '🈳', '🈹', '🚺', '🚹', '🚼', '⚧', '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸', '⏹', '⏺', '⏭', '⏮', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '♾', '💲', '💱', '™️', '©️', '®️', '〰️', '➰', '➿', '🔚', '🔙', '🔛', '🔝', '🔜', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '🔷', '🔶', '🔹', '🔸', '🔲', '🔳', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔈', '🔇', '🔉', '🔊', '🔔', '🔕', '📣', '📢', '👁‍🗨', '💬', '💭', '🗯', '♠️', '♣️', '♥️', '♦️', '🃏', '🎴', '🀄', '🎲', '♟', '🎭', '🎨']],
                         ].map(([cat, emojis]) => {
                           const filtered = emojis.filter(e => !emojiSearch || e.includes(emojiSearch))
                           if (filtered.length === 0) return null
@@ -3700,7 +3727,7 @@ function ReactionRolesPanel({ guildId }) {
                 {saving ? 'Saving…' : 'Save'}
               </button>
               <button
-                onClick={() => selected !== null && messages[selected]?.id && deleteMsg(messages[selected].id, { stopPropagation: () => {} })}
+                onClick={() => selected !== null && messages[selected]?.id && deleteMsg(messages[selected].id, { stopPropagation: () => { } })}
                 disabled={selected === null || !messages[selected]?.id}
                 style={{
                   padding: '9px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600,
@@ -4001,7 +4028,7 @@ function PlaceholderPanel({ label, icon: Icon }) {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in">
       <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-           style={{ background: 'rgba(84,0,0,0.12)', border: '1px solid rgba(84,0,0,0.25)' }}>
+        style={{ background: 'rgba(84,0,0,0.12)', border: '1px solid rgba(84,0,0,0.25)' }}>
         <Icon size={28} style={{ color: '#8b0000' }} />
       </div>
       <h3 className="mb-2" style={{ color: 'var(--text-1)' }}>{label}</h3>
@@ -4014,18 +4041,23 @@ function PlaceholderPanel({ label, icon: Icon }) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function Manage() {
-  const { guildId }  = useParams()
-  const navigate     = useNavigate()
-  const [guild,      setGuild]      = useState(null)
-  const [botStatus,  setBotStatus]  = useState(null)
-  const [user,       setUser]       = useState(null)
-  const [active,     setActive]     = useState('overview')
-  const [sidebarOpen,setSidebarOpen]= useState(false)
+  const { guildId } = useParams()
+  const navigate = useNavigate()
+  const [guild, setGuild] = useState(null)
+  const [botStatus, setBotStatus] = useState(null)
+  const [user, setUser] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(true)  // default true until check completes
+  const [active, setActive] = useState('overview')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
-    getMe().then(r => setUser(r.data)).catch(() => {})
-    getGuild(guildId).then(r => setGuild(r.data)).catch(() => {})
-    getBotStatus().then(r => setBotStatus(r.data)).catch(() => {})
+    getMe().then(r => setUser(r.data)).catch(() => { })
+    getGuild(guildId).then(r => setGuild(r.data)).catch(() => { })
+    getBotStatus().then(r => setBotStatus(r.data)).catch(() => { })
+    // Check if user can manage this guild
+    getMemberCheck(guildId).then(r => {
+      setIsAdmin(r.data?.is_admin || r.data?.is_owner || false)
+    }).catch(() => setIsAdmin(false))
   }, [guildId])
 
   async function handlePrefixSave(prefix) {
@@ -4038,16 +4070,16 @@ export default function Manage() {
       ? `https://cdn.discordapp.com/avatars/${user.sub}/${user.avatar}.png?size=64`
       : 'https://cdn.discordapp.com/embed/avatars/0.png')
 
-  const online = botStatus?.online && (Date.now()/1000 - (botStatus?.last_seen||0)) < 90
+  const online = botStatus?.online && (Date.now() / 1000 - (botStatus?.last_seen || 0)) < 90
 
   function renderContent() {
     switch (active) {
-      case 'overview':  return <OverviewPanel guild={guild} botStatus={botStatus} />
-      case 'commands':  return <CommandsPanel guildId={guildId} />
-      case 'settings':  return <SettingsPanel guild={guild} onPrefixSave={handlePrefixSave} />
-      case 'logs':      return <ActionLogPanel guildId={guildId} />
-      case 'automod':   return <AutoModPanel guildId={guildId} />
-      case 'welcomer':  return <WelcomerPanel guildId={guildId} />
+      case 'overview': return <OverviewPanel guild={guild} botStatus={botStatus} />
+      case 'commands': return <CommandsPanel guildId={guildId} />
+      case 'settings': return <SettingsPanel guild={guild} onPrefixSave={handlePrefixSave} />
+      case 'logs': return <ActionLogPanel guildId={guildId} />
+      case 'automod': return <AutoModPanel guildId={guildId} />
+      case 'welcomer': return <WelcomerPanel guildId={guildId} />
       case 'customcmds': return <CustomCommandsPanel guildId={guildId} />
       case 'giveaways': return <GiveawaysPanel guildId={guildId} />
       case 'autoresponder': return <AutoResponderPanel guildId={guildId} />
@@ -4100,7 +4132,7 @@ export default function Manage() {
               </p>
             </div>
             <button className="lg:hidden" style={{ color: 'var(--text-3)' }}
-                    onClick={() => setSidebarOpen(false)}>
+              onClick={() => setSidebarOpen(false)}>
               <X size={14} />
             </button>
           </div>
@@ -4130,14 +4162,14 @@ export default function Manage() {
         <div className="px-3 py-3" style={{ borderTop: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2 px-1">
             <img src={avatarUrl} alt="avatar" className="w-7 h-7 rounded-full"
-                 style={{ border: '1px solid var(--border)' }} />
+              style={{ border: '1px solid var(--border)' }} />
             <span className="text-xs font-medium flex-1 truncate" style={{ color: 'var(--text-2)' }}>
               {user?.username || '…'}
             </span>
             <button onClick={() => { localStorage.clear(); navigate('/login') }}
-                    style={{ color: 'var(--text-3)' }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
+              style={{ color: 'var(--text-3)' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
               <LogOut size={13} />
             </button>
           </div>
@@ -4149,9 +4181,9 @@ export default function Manage() {
 
         {/* Top bar */}
         <header className="flex items-center gap-3 px-4 h-14 shrink-0"
-                style={{ background: 'var(--sidebar)', borderBottom: '1px solid var(--border)' }}>
+          style={{ background: 'var(--sidebar)', borderBottom: '1px solid var(--border)' }}>
           <button className="lg:hidden" style={{ color: 'var(--text-3)' }}
-                  onClick={() => setSidebarOpen(true)}>
+            onClick={() => setSidebarOpen(true)}>
             <Menu size={18} />
           </button>
 
@@ -4169,15 +4201,28 @@ export default function Manage() {
           {/* Status */}
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${online ? 'bg-g-success' : 'bg-g-error'}`}
-                 style={{ boxShadow: online ? '0 0 5px #2ECC71' : '0 0 5px #E74C3C' }} />
+              style={{ boxShadow: online ? '0 0 5px #2ECC71' : '0 0 5px #E74C3C' }} />
             <span className="text-xs hidden sm:block" style={{ color: 'var(--text-3)' }}>
-              {online ? `${Math.round(botStatus?.latency_ms||0)}ms` : 'Offline'}
+              {online ? `${Math.round(botStatus?.latency_ms || 0)}ms` : 'Offline'}
             </span>
           </div>
         </header>
 
         {/* Content */}
         <main className="flex-1 overflow-y-auto p-5">
+          {/* Read-only banner for non-admins */}
+          {!isAdmin && (
+            <div className="mb-4 px-4 py-3 rounded-lg flex items-center gap-3"
+              style={{ background: 'rgba(255,193,7,0.1)', border: '1px solid rgba(255,193,7,0.3)' }}>
+              <Shield size={16} style={{ color: '#FFC107' }} />
+              <div className="flex-1">
+                <p className="text-sm font-semibold" style={{ color: '#FFC107' }}>Read-Only Mode</p>
+                <p className="text-xs mt-0.5" style={{ color: 'rgba(255,193,7,0.8)' }}>
+                  You need Administrator or Manage Server permission to modify settings.
+                </p>
+              </div>
+            </div>
+          )}
           <AnimatePresence mode="wait">
             <motion.div key={active}
               initial={{ opacity: 0, y: 6 }}

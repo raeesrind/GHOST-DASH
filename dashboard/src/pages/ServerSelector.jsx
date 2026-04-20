@@ -1,13 +1,12 @@
 /**
  * Server selector — shown after Discord login.
- * Lists all user guilds, highlights ones where GHOST is installed.
- * Clicking a guild opens the dashboard for that server.
- * Like dyno.gg/servers
+ * Shows only mutual guilds (bot + user are both in).
+ * Only admins/owners can manage a server.
  */
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Plus, Settings, ChevronRight, Crown, Shield, X } from 'lucide-react'
+import { Search, Plus, Settings, ChevronRight, Crown, Shield, Lock, X } from 'lucide-react'
 import { getMe, getGuilds, getDiscordGuilds } from '../api'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -27,9 +26,10 @@ function guildInitials(name) {
 }
 
 // ── Guild card ────────────────────────────────────────────────────────────────
-function GuildCard({ guild, installed, onSelect, index }) {
+function GuildCard({ guild, canManage, onSelect, index }) {
   const icon = guildIcon(guild)
-  const isAdmin = (guild.permissions & 0x8) === 0x8  // ADMINISTRATOR bit
+  const isAdmin = guild.is_admin || guild.is_owner || (guild.permissions & 0x8) === 0x8
+  const isOwner = guild.is_owner || guild.owner
 
   return (
     <motion.div
@@ -40,10 +40,10 @@ function GuildCard({ guild, installed, onSelect, index }) {
       className="rounded-2xl overflow-hidden cursor-pointer group transition-all duration-200"
       style={{
         background: 'rgba(22,24,32,0.9)',
-        border: installed
+        border: canManage
           ? '1px solid rgba(84,0,0,0.5)'
           : '1px solid rgba(84,0,0,0.15)',
-        boxShadow: installed ? '0 0 16px rgba(84,0,0,0.15)' : 'none',
+        boxShadow: canManage ? '0 0 16px rgba(84,0,0,0.15)' : 'none',
       }}
       onClick={() => onSelect(guild)}
     >
@@ -51,21 +51,19 @@ function GuildCard({ guild, installed, onSelect, index }) {
       <div
         className="h-16 relative flex items-end px-4 pb-0"
         style={{
-          background: installed
+          background: canManage
             ? 'linear-gradient(135deg, rgba(84,0,0,0.4), rgba(139,0,0,0.2))'
             : 'linear-gradient(135deg, rgba(22,24,32,0.8), rgba(31,34,42,0.6))',
         }}
       >
-        {/* Installed badge */}
-        {installed && (
-          <div
-            className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
-            style={{ background: 'rgba(84,0,0,0.8)', color: '#ff9999', border: '1px solid rgba(139,0,0,0.6)' }}
-          >
-            <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            Active
-          </div>
-        )}
+        {/* Active badge */}
+        <div
+          className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
+          style={{ background: 'rgba(84,0,0,0.8)', color: '#ff9999', border: '1px solid rgba(139,0,0,0.6)' }}
+        >
+          <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+          Active
+        </div>
       </div>
 
       {/* Guild info */}
@@ -77,14 +75,14 @@ function GuildCard({ guild, installed, onSelect, index }) {
               src={icon}
               alt={guild.name}
               className="w-14 h-14 rounded-xl border-2 shrink-0"
-              style={{ borderColor: installed ? 'rgba(84,0,0,0.6)' : 'rgba(84,0,0,0.2)' }}
+              style={{ borderColor: canManage ? 'rgba(84,0,0,0.6)' : 'rgba(84,0,0,0.2)' }}
             />
           ) : (
             <div
               className="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold shrink-0 border-2"
               style={{
                 background: 'linear-gradient(135deg, var(--c1), var(--c2))',
-                borderColor: installed ? 'rgba(84,0,0,0.6)' : 'rgba(84,0,0,0.2)',
+                borderColor: canManage ? 'rgba(84,0,0,0.6)' : 'rgba(84,0,0,0.2)',
                 color: 'var(--c3)',
               }}
             >
@@ -94,14 +92,19 @@ function GuildCard({ guild, installed, onSelect, index }) {
           <div className="flex-1 min-w-0 mt-6">
             <p className="text-white font-semibold text-sm truncate">{guild.name}</p>
             <div className="flex items-center gap-2 mt-0.5">
-              {isAdmin && (
-                <span className="flex items-center gap-1 text-xs text-amber-400">
-                  <Crown size={10} /> Admin
+              {isOwner && (
+                <span className="flex items-center gap-1 text-xs text-purple-400">
+                  <Crown size={10} /> Owner
                 </span>
               )}
-              {guild.owner && (
-                <span className="flex items-center gap-1 text-xs text-purple-400">
-                  <Shield size={10} /> Owner
+              {isAdmin && !isOwner && (
+                <span className="flex items-center gap-1 text-xs text-amber-400">
+                  <Shield size={10} /> Admin
+                </span>
+              )}
+              {!isAdmin && !isOwner && (
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <Lock size={10} /> Member
                 </span>
               )}
             </div>
@@ -109,7 +112,7 @@ function GuildCard({ guild, installed, onSelect, index }) {
         </div>
 
         {/* Action button */}
-        {installed ? (
+        {canManage ? (
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
@@ -125,20 +128,15 @@ function GuildCard({ guild, installed, onSelect, index }) {
             <ChevronRight size={14} />
           </motion.button>
         ) : (
-          <motion.a
-            href={`https://discord.com/oauth2/authorize?client_id=${import.meta.env.VITE_CLIENT_ID || ''}&permissions=8&scope=bot%20applications.commands&guild_id=${guild.id}`}
-            target="_blank"
-            rel="noreferrer"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+          <div
             className="w-full flex items-center justify-center gap-2 py-2 rounded-xl
-                       text-sm font-medium text-gray-400 hover:text-white transition-all"
-            style={{ background: 'rgba(84,0,0,0.1)', border: '1px solid rgba(84,0,0,0.25)' }}
-            onClick={e => e.stopPropagation()}
+                       text-sm font-medium text-gray-500 cursor-not-allowed"
+            style={{ background: 'rgba(84,0,0,0.05)', border: '1px solid rgba(84,0,0,0.15)' }}
+            title="You need Administrator or Manage Server permission"
           >
-            <Plus size={14} />
-            Add GHOST
-          </motion.a>
+            <Lock size={14} />
+            No Permission
+          </div>
         )}
       </div>
     </motion.div>
@@ -148,60 +146,57 @@ function GuildCard({ guild, installed, onSelect, index }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function ServerSelector() {
   const [user, setUser] = useState(null)
-  const [guilds, setGuilds] = useState([])   // user's Discord guilds
-  const [botGuilds, setBotGuilds] = useState([])   // guilds where bot is installed
+  const [guilds, setGuilds] = useState([])   // mutual guilds (bot + user)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState('all') // all | installed | admin
+  const [filter, setFilter] = useState('all') // all | manageable | admin
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
     getMe().then(r => setUser(r.data)).catch(() => { })
 
-    // Try localStorage first (populated by browser-side Discord fetch at login)
-    const cached = localStorage.getItem('ghost_guilds')
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setGuilds(parsed)
-          // Still fetch bot guilds to know which are installed
-          getGuilds()
-            .then(r => setBotGuilds(r.data.map(g => g.id)))
-            .catch(() => { })
-            .finally(() => setLoading(false))
-          return
-        }
-      } catch (_) { }
-    }
-
-    // Fallback: fetch from backend (may only return bot guilds if server proxy blocks Discord)
+    // getDiscordGuilds() → /auth/guilds → returns mutual guilds (bot is in them)
+    // getGuilds() → /guilds → bot guilds from DB with member_count etc.
     Promise.allSettled([
-      getDiscordGuilds().then(r => setGuilds(r.data || [])),
-      getGuilds().then(r => setBotGuilds(r.data.map(g => g.id))),
-    ]).finally(() => setLoading(false))
+      getDiscordGuilds().then(r => r.data || []),
+      getGuilds().then(r => r.data || []),
+    ]).then(([mutualRes, botDbRes]) => {
+      const mutualGuilds = mutualRes.status === 'fulfilled' ? mutualRes.value : []
+      const botDbGuilds = botDbRes.status === 'fulfilled' ? botDbRes.value : []
+      const botDbMap = Object.fromEntries(botDbGuilds.map(g => [g.id, g]))
+
+      // Merge: use mutual guild list (has user permissions), enrich with DB data
+      const merged = mutualGuilds.map(g => ({
+        ...g,
+        member_count: botDbMap[g.id]?.member_count ?? g.member_count ?? 0,
+        // Determine if user can manage: owner, ADMINISTRATOR bit, or MANAGE_GUILD bit
+        can_manage: g.owner || (parseInt(g.permissions || '0') & 0x8) === 0x8 || (parseInt(g.permissions || '0') & 0x20) === 0x20,
+        is_admin: g.owner || (parseInt(g.permissions || '0') & 0x8) === 0x8 || (parseInt(g.permissions || '0') & 0x20) === 0x20,
+        is_owner: g.owner || false,
+      }))
+
+      setGuilds(merged)
+    }).finally(() => setLoading(false))
   }, [])
 
   function handleSelect(guild) {
-    const isInstalled = botGuilds.includes(guild.id)
-    if (isInstalled) {
-      localStorage.setItem('ghost_active_guild', JSON.stringify({
-        id: guild.id, name: guild.name, icon: guild.icon,
-      }))
-      navigate(`/manage/${guild.id}`)
-    }
+    if (!guild.can_manage) return  // silently block — button is already disabled
+    localStorage.setItem('ghost_active_guild', JSON.stringify({
+      id: guild.id, name: guild.name, icon: guild.icon,
+    }))
+    navigate(`/manage/${guild.id}`)
   }
 
   const filtered = useMemo(() => {
     return guilds.filter(g => {
       if (search && !g.name.toLowerCase().includes(search.toLowerCase())) return false
-      if (filter === 'installed' && !botGuilds.includes(g.id)) return false
-      if (filter === 'admin' && !((g.permissions & 0x8) === 0x8) && !g.owner) return false
+      if (filter === 'manageable' && !g.can_manage) return false
+      if (filter === 'admin' && !g.is_admin) return false
       return true
     })
-  }, [guilds, botGuilds, search, filter])
+  }, [guilds, search, filter])
 
-  const installedCount = guilds.filter(g => botGuilds.includes(g.id)).length
+  const manageableCount = guilds.filter(g => g.can_manage).length
 
   const avatarUrl = user?.avatar_url
     || (user?.avatar && user?.sub
@@ -255,9 +250,9 @@ export default function ServerSelector() {
             Select a Server
           </h1>
           <p className="text-gray-400 text-sm">
-            {installedCount > 0
-              ? `GHOST is active in ${installedCount} of your ${guilds.length} servers.`
-              : `Choose a server to manage or add GHOST to a new one.`}
+            {guilds.length > 0
+              ? `GHOST is active in ${guilds.length} mutual servers. You can manage ${manageableCount}.`
+              : `No mutual servers found.`}
           </p>
         </motion.div>
 
@@ -283,7 +278,7 @@ export default function ServerSelector() {
           <div className="flex gap-2">
             {[
               { id: 'all', label: 'All' },
-              { id: 'installed', label: `Active (${installedCount})` },
+              { id: 'manageable', label: `Can Manage (${manageableCount})` },
               { id: 'admin', label: 'Admin' },
             ].map(f => (
               <button
@@ -318,7 +313,7 @@ export default function ServerSelector() {
                 <GuildCard
                   key={guild.id}
                   guild={guild}
-                  installed={botGuilds.includes(guild.id)}
+                  canManage={guild.can_manage}
                   onSelect={handleSelect}
                   index={i}
                 />
@@ -336,7 +331,7 @@ export default function ServerSelector() {
         {!loading && guilds.length === 0 && (
           <div className="text-center py-20">
             <p className="text-gray-400 mb-4">
-              No servers found. Make sure you granted the <strong>guilds</strong> scope during login.
+              No mutual servers found. Make sure GHOST is in your server and you granted the <strong>guilds</strong> scope during login.
             </p>
             <button
               onClick={() => { localStorage.clear(); navigate('/login') }}
