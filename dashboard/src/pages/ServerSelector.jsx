@@ -147,18 +147,35 @@ function GuildCard({ guild, installed, onSelect, index }) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function ServerSelector() {
-  const [user,        setUser]        = useState(null)
-  const [guilds,      setGuilds]      = useState([])   // user's Discord guilds
-  const [botGuilds,   setBotGuilds]   = useState([])   // guilds where bot is installed
-  const [search,      setSearch]      = useState('')
-  const [filter,      setFilter]      = useState('all') // all | installed | admin
-  const [loading,     setLoading]     = useState(true)
+  const [user, setUser] = useState(null)
+  const [guilds, setGuilds] = useState([])   // user's Discord guilds
+  const [botGuilds, setBotGuilds] = useState([])   // guilds where bot is installed
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState('all') // all | installed | admin
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
-    getMe().then(r => setUser(r.data)).catch(() => {})
+    getMe().then(r => setUser(r.data)).catch(() => { })
 
-    // Fetch both in parallel
+    // Try localStorage first (populated by browser-side Discord fetch at login)
+    const cached = localStorage.getItem('ghost_guilds')
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setGuilds(parsed)
+          // Still fetch bot guilds to know which are installed
+          getGuilds()
+            .then(r => setBotGuilds(r.data.map(g => g.id)))
+            .catch(() => { })
+            .finally(() => setLoading(false))
+          return
+        }
+      } catch (_) { }
+    }
+
+    // Fallback: fetch from backend (may only return bot guilds if server proxy blocks Discord)
     Promise.allSettled([
       getDiscordGuilds().then(r => setGuilds(r.data || [])),
       getGuilds().then(r => setBotGuilds(r.data.map(g => g.id))),
@@ -204,7 +221,7 @@ export default function ServerSelector() {
       >
         <div className="flex items-center gap-3">
           <img src="/ghost.png" alt="GHOST" className="w-8 h-8 rounded-lg"
-               style={{ filter: 'drop-shadow(0 0 6px rgba(84,0,0,0.8))' }} />
+            style={{ filter: 'drop-shadow(0 0 6px rgba(84,0,0,0.8))' }} />
           <span className="text-white font-bold text-base tracking-wide">GHOST</span>
         </div>
 
@@ -212,8 +229,8 @@ export default function ServerSelector() {
         {user && (
           <div className="flex items-center gap-2">
             <img src={avatarUrl} alt={user.username}
-                 className="w-8 h-8 rounded-full border"
-                 style={{ borderColor: 'rgba(84,0,0,0.5)' }} />
+              className="w-8 h-8 rounded-full border"
+              style={{ borderColor: 'rgba(84,0,0,0.5)' }} />
             <span className="text-sm text-gray-300 hidden sm:block">{user.username}</span>
             <button
               onClick={() => { localStorage.clear(); navigate('/login') }}
@@ -258,16 +275,16 @@ export default function ServerSelector() {
             />
             {search && (
               <button onClick={() => setSearch('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
                 <X size={13} />
               </button>
             )}
           </div>
           <div className="flex gap-2">
             {[
-              { id: 'all',       label: 'All' },
+              { id: 'all', label: 'All' },
               { id: 'installed', label: `Active (${installedCount})` },
-              { id: 'admin',     label: 'Admin' },
+              { id: 'admin', label: 'Admin' },
             ].map(f => (
               <button
                 key={f.id}
@@ -288,7 +305,7 @@ export default function ServerSelector() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="h-48 rounded-2xl animate-pulse"
-                   style={{ background: 'rgba(22,24,32,0.6)' }} />
+                style={{ background: 'rgba(22,24,32,0.6)' }} />
             ))}
           </div>
         ) : filtered.length > 0 ? (
