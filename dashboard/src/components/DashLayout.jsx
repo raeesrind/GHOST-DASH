@@ -16,9 +16,16 @@ const NAV = [
 ]
 
 function GuildAvatar({ guild, size = 8 }) {
-  if (guild?.icon)
-    return <img src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=64`}
-                alt={guild.name} className={`w-${size} h-${size} rounded-lg object-cover`} />
+  const getIconUrl = (guild) => {
+    if (!guild?.icon) return null
+    const isAnimated = guild.icon.startsWith('a_')
+    return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${isAnimated ? 'gif' : 'png'}?size=512`
+  }
+
+  const iconUrl = getIconUrl(guild)
+  if (iconUrl) {
+    return <img src={iconUrl} alt={guild.name} className={`w-${size} h-${size} rounded-lg object-cover`} />
+  }
   const init = (guild?.name || '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
   return (
     <div className={`w-${size} h-${size} rounded-lg flex items-center justify-center text-xs font-bold`}

@@ -70,9 +70,11 @@ const CAT_COLOR = {
 }
 
 function GuildAvatar({ guild, size = 10 }) {
-  if (guild?.icon)
-    return <img src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=64`}
+  if (guild?.icon) {
+    const isAnimated = guild.icon.startsWith('a_')
+    return <img src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${isAnimated ? 'gif' : 'png'}?size=512`}
       alt={guild.name} className={`w-${size} h-${size} rounded-xl object-cover`} />
+  }
   const init = (guild?.name || '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
   return (
     <div className={`w-${size} h-${size} rounded-xl flex items-center justify-center text-sm font-bold`}
