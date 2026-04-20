@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -2013,7 +2013,7 @@ const CC_DEFAULT = {
 function CCModal({ cmd, onSave, onClose, channels, roles }) {
   const isEdit = !!cmd?.trigger
   const [form, setForm] = React.useState({
-    ...CC_DEFAULT, embed: { ...CC_DEFAULT.embed },
+    ...CC_DEFAULT,
     name: '', description: '', silent: false, noeveryone: true,
     ...(cmd || {}),
     embed: { ...CC_DEFAULT.embed, ...(cmd?.embed || {}) }
@@ -2369,7 +2369,6 @@ function ARModal({ ar, onSave, onClose, channels, roles }) {
   const isEdit = !!(ar && ar.id)
   const [form, setForm] = React.useState({
     ...AR_DEFAULT,
-    embed: { ...AR_DEFAULT.embed },
     ...(ar || {}),
     embed: { ...AR_DEFAULT.embed, ...(ar?.embed || {}) },
   })
