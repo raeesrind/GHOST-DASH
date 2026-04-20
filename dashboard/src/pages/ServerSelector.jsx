@@ -6,8 +6,8 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Plus, Settings, ChevronRight, Crown, Shield, Lock, X } from 'lucide-react'
-import { getMe, getGuilds, getDiscordGuilds } from '../api'
+import { Search, Settings, ChevronRight, Crown, Shield, Lock, X } from 'lucide-react'
+import { getMe, getDiscordGuilds } from '../api'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function guildIcon(guild) {
@@ -155,28 +155,27 @@ export default function ServerSelector() {
   useEffect(() => {
     getMe().then(r => setUser(r.data)).catch(() => { })
 
-    // getDiscordGuilds() → /auth/guilds → returns mutual guilds (bot is in them)
-    // getGuilds() → /guilds → bot guilds from DB with member_count etc.
-    Promise.allSettled([
-      getDiscordGuilds().then(r => r.data || []),
-      getGuilds().then(r => r.data || []),
-    ]).then(([mutualRes, botDbRes]) => {
-      const mutualGuilds = mutualRes.status === 'fulfilled' ? mutualRes.value : []
-      const botDbGuilds = botDbRes.status === 'fulfilled' ? botDbRes.value : []
-      const botDbMap = Object.fromEntries(botDbGuilds.map(g => [g.id, g]))
-
-      // Merge: use mutual guild list (has user permissions), enrich with DB data
-      const merged = mutualGuilds.map(g => ({
-        ...g,
-        member_count: botDbMap[g.id]?.member_count ?? g.member_count ?? 0,
-        // Determine if user can manage: owner, ADMINISTRATOR bit, or MANAGE_GUILD bit
-        can_manage: g.owner || (parseInt(g.permissions || '0') & 0x8) === 0x8 || (parseInt(g.permissions || '0') & 0x20) === 0x20,
-        is_admin: g.owner || (parseInt(g.permissions || '0') & 0x8) === 0x8 || (parseInt(g.permissions || '0') & 0x20) === 0x20,
-        is_owner: g.owner || false,
-      }))
-
-      setGuilds(merged)
-    }).finally(() => setLoading(false))
+    // /auth/guilds returns ONLY mutual guilds with real user permissions
+    getDiscordGuilds()
+      .then(r => {
+        const guilds = r.data || []
+        const enriched = guilds.map(g => {
+          const perms = parseInt(g.permissions || '0', 10)
+          const isOwner = g.owner === true
+          const isAdmin = g.is_admin === true || isOwner ||
+            (perms & 0x8) === 0x8 ||    // ADMINISTRATOR
+            (perms & 0x20) === 0x20      // MANAGE_GUILD
+          return {
+            ...g,
+            is_owner: isOwner,
+            is_admin: isAdmin,
+            can_manage: isAdmin,
+          }
+        })
+        setGuilds(enriched)
+      })
+      .catch(() => { })
+      .finally(() => setLoading(false))
   }, [])
 
   function handleSelect(guild) {
