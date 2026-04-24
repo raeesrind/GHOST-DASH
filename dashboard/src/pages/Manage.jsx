@@ -70,9 +70,19 @@ const CAT_COLOR = {
 }
 
 function GuildAvatar({ guild, size = 10 }) {
-  if (guild?.icon)
-    return <img src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=64`}
-      alt={guild.name} className={`w-${size} h-${size} rounded-xl object-cover`} />
+  if (guild?.icon) {
+    let src
+    if (guild.icon.startsWith('http')) {
+      // Bot syncs full CDN URLs — use directly, swap to gif if animated hash in path
+      src = /\/a_[a-f0-9]+\./.test(guild.icon)
+        ? guild.icon.replace(/\.(png|webp|jpg)(\?|$)/, '.gif$2')
+        : guild.icon
+    } else {
+      const ext = guild.icon.startsWith('a_') ? 'gif' : 'png'
+      src = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${ext}?size=128`
+    }
+    return <img src={src} alt={guild.name} className={`w-${size} h-${size} rounded-xl object-cover`} />
+  }
   const init = (guild?.name || '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
   return (
     <div className={`w-${size} h-${size} rounded-xl flex items-center justify-center text-sm font-bold`}
