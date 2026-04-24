@@ -5,10 +5,9 @@ import {
   LayoutDashboard, Terminal, Shield, Star, Zap, Settings,
   BarChart2, Activity, LogOut, Menu, X, ChevronRight,
   Server, Users, MessageSquare, Bell, Hash, Crown,
-  Gift, Gamepad2, Wrench, ArrowLeft, Search
+  Gift, Gamepad2, Wrench, ArrowLeft, Search,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import AnalyticsPanel from '../components/AnalyticsPanel'
 import {
   getMe, getGuilds, getCommands, updateCommand, updatePrefix, getGuild, getBotStatus,
   getActionLog, saveActionLog, getGuildChannels, getGuildRoles, getGuildEmojis,
@@ -58,8 +57,8 @@ const MODULES = [
   },
   {
     section: 'Analytics', items: [
-      { id: 'stats', label: 'Analytics', icon: Activity },
-      { id: 'status', label: 'Bot Status', icon: BarChart2 },
+      { id: 'stats', label: 'Statistics', icon: BarChart2 },
+      { id: 'status', label: 'Bot Status', icon: Activity },
     ]
   },
 ]
@@ -72,7 +71,7 @@ const CAT_COLOR = {
 
 function GuildAvatar({ guild, size = 10 }) {
   if (guild?.icon)
-    return <img src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.webp?size=512`}
+    return <img src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=64`}
       alt={guild.name} className={`w-${size} h-${size} rounded-xl object-cover`} />
   const init = (guild?.name || '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
   return (
@@ -1692,6 +1691,7 @@ const WELCOMER_VARS = [
   ['{#channel}', 'Link a channel by name. Eg: {#general}'],
   ['{everyone}', '@everyone'],
   ['{here}', '@here'],
+  ['{emoji}', 'All saved welcome emojis joined together. Eg: Welcome {user}! {emoji}'],
 ]
 
 const DEFAULT_WELCOMER = {
@@ -1706,6 +1706,7 @@ const DEFAULT_WELCOMER = {
   v2_body_text: 'Hey **{username}**, Welcome to **{server}**\nHappy chatting & enjoy!',
   v2_footer_text: '{server} now has {member_count} members.',
   v2_image_url: '',
+  emojis: [],
 }
 
 function WelcomerPanel({ guildId }) {
@@ -1713,6 +1714,7 @@ function WelcomerPanel({ guildId }) {
   const [channels, setChannels] = React.useState([])
   const [loading, setLoading] = React.useState(true)
   const [saving, setSaving] = React.useState(false)
+  const [emojiInput, setEmojiInput] = React.useState('')
 
   React.useEffect(() => {
     if (!guildId) return
@@ -1721,7 +1723,7 @@ function WelcomerPanel({ guildId }) {
       getGuildChannels(guildId).catch(() => ({ data: [] })),
     ]).then(([w, ch]) => {
       const data = w.data || DEFAULT_WELCOMER
-      setCfg({ ...DEFAULT_WELCOMER, ...data, embed: { ...DEFAULT_WELCOMER.embed, ...(data.embed || {}) } })
+      setCfg({ ...DEFAULT_WELCOMER, ...data, embed: { ...DEFAULT_WELCOMER.embed, ...(data.embed || {}) }, emojis: Array.isArray(data.emojis) ? data.emojis : [] })
       setChannels(ch.data || [])
     }).finally(() => setLoading(false))
   }, [guildId])
@@ -1926,6 +1928,81 @@ function WelcomerPanel({ guildId }) {
         </button>
       </div>
 
+      {/* ── Emoji Card ─────────────────────────────────────────────────────── */}
+      <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 20, marginBottom: 14 }}>
+        <p style={{ color: S.text2, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>
+          Welcome Emojis <span style={{ color: '#555', fontWeight: 400, textTransform: 'none', fontSize: 12 }}>({(cfg.emojis || []).length}/5 max)</span>
+        </p>
+        <p style={{ color: S.text2, fontSize: 12, margin: '0 0 14px' }}>
+          Add Unicode or Discord custom emojis. Use <code style={{ color: S.accent }}>{'{emoji}'}</code> in your message to place them inline, or they'll appear at the end automatically.
+        </p>
+
+        {/* Current emojis */}
+        {(cfg.emojis || []).length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+            {(cfg.emojis || []).map((em, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: '#2a2a35', border: '1px solid #3a3a45',
+                borderRadius: 20, padding: '4px 10px 4px 12px',
+              }}>
+                <span style={{ fontSize: 18, lineHeight: 1 }}>{em}</span>
+                <button
+                  onClick={() => set({ emojis: (cfg.emojis || []).filter((_, j) => j !== i) })}
+                  style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center' }}
+                  title="Remove emoji"
+                >✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add emoji input */}
+        {(cfg.emojis || []).length < 5 ? (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              value={emojiInput}
+              onChange={e => setEmojiInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key !== 'Enter') return
+                const raw = emojiInput.trim()
+                if (!raw) return
+                const isCustom = /^<a?:[a-zA-Z0-9_]+:\d+>$/.test(raw)
+                const isUnicode = raw.length > 0 && !/^[\x00-\x7F]+$/.test(raw)
+                if (!isCustom && !isUnicode) return
+                if ((cfg.emojis || []).includes(raw)) return
+                set({ emojis: [...(cfg.emojis || []), raw] })
+                setEmojiInput('')
+              }}
+              placeholder="Paste emoji here… e.g. 🎉 or <a:wave:123456>"
+              style={{ ...inp, flex: 1, fontSize: 15 }}
+            />
+            <button
+              onClick={() => {
+                const raw = emojiInput.trim()
+                if (!raw) return
+                const isCustom = /^<a?:[a-zA-Z0-9_]+:\d+>$/.test(raw)
+                const isUnicode = raw.length > 0 && !/^[\x00-\x7F]+$/.test(raw)
+                if (!isCustom && !isUnicode) return
+                if ((cfg.emojis || []).includes(raw)) return
+                set({ emojis: [...(cfg.emojis || []), raw] })
+                setEmojiInput('')
+              }}
+              style={{ background: S.accent, color: '#fff', border: 'none', borderRadius: 6, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >+ Add</button>
+          </div>
+        ) : (
+          <p style={{ color: '#666', fontSize: 12, margin: 0 }}>Max 5 emojis reached. Remove one to add another.</p>
+        )}
+
+        {(cfg.emojis || []).length > 0 && (
+          <button
+            onClick={() => set({ emojis: [] })}
+            style={{ marginTop: 10, background: 'none', border: '1px solid #444', borderRadius: 6, padding: '5px 14px', fontSize: 12, color: '#888', cursor: 'pointer' }}
+          >Clear all</button>
+        )}
+      </div>
+
       {/* Variables reference */}
       <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: 8, padding: 20 }}>
         <p style={{ color: S.text2, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>Variables</p>
@@ -2014,7 +2091,7 @@ const CC_DEFAULT = {
 function CCModal({ cmd, onSave, onClose, channels, roles }) {
   const isEdit = !!cmd?.trigger
   const [form, setForm] = React.useState({
-    ...CC_DEFAULT,
+    ...CC_DEFAULT, embed: { ...CC_DEFAULT.embed },
     name: '', description: '', silent: false, noeveryone: true,
     ...(cmd || {}),
     embed: { ...CC_DEFAULT.embed, ...(cmd?.embed || {}) }
@@ -2370,6 +2447,7 @@ function ARModal({ ar, onSave, onClose, channels, roles }) {
   const isEdit = !!(ar && ar.id)
   const [form, setForm] = React.useState({
     ...AR_DEFAULT,
+    embed: { ...AR_DEFAULT.embed },
     ...(ar || {}),
     embed: { ...AR_DEFAULT.embed, ...(ar?.embed || {}) },
   })
@@ -4023,7 +4101,6 @@ function ReactionRolesPanel({ guildId }) {
   )
 }
 
-
 // ── Placeholder ───────────────────────────────────────────────────────────────
 function PlaceholderPanel({ label, icon: Icon }) {
   return (
@@ -4086,7 +4163,6 @@ export default function Manage() {
       case 'autoresponder': return <AutoResponderPanel guildId={guildId} />
       case 'moderation': return <ModerationPanel guildId={guildId} />
       case 'reactionroles': return <ReactionRolesPanel guildId={guildId} />
-      case 'stats': return <AnalyticsPanel guild={guild} botStatus={botStatus} />
       default: {
         const mod = MODULES.flatMap(s => s.items).find(i => i.id === active)
         return <PlaceholderPanel label={mod?.label || active} icon={mod?.icon || Settings} />
