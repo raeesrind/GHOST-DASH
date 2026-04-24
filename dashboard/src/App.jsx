@@ -14,13 +14,13 @@ import StatusPage from './pages/StatusPage'
 import Stats from './pages/Stats'
 import Status from './pages/Status'
 import Settings from './pages/Settings'
+import Support from './pages/Support'
 import DashLayout from './components/DashLayout'
 
 function AuthCallback() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const token = params.get('token')
-    const discordToken = params.get('discord_token')
     const error = params.get('error')
 
     if (error) {
@@ -33,21 +33,7 @@ function AuthCallback() {
     }
 
     localStorage.setItem('ghost_token', token)
-
-    // Fetch guilds directly from Discord in the browser (bypasses server firewall)
-    if (discordToken) {
-      fetch('https://discord.com/api/v10/users/@me/guilds', {
-        headers: { Authorization: `Bearer ${discordToken}` },
-      })
-        .then(r => r.ok ? r.json() : null)
-        .then(guilds => {
-          if (guilds) localStorage.setItem('ghost_guilds', JSON.stringify(guilds))
-        })
-        .catch(() => { })
-        .finally(() => { window.location.href = '/servers' })
-    } else {
-      window.location.href = '/servers'
-    }
+    window.location.href = '/servers'
   }, [])
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-ghost-dark gap-4">
@@ -80,6 +66,7 @@ export default function App() {
         <Route path="/commands-list" element={<CommandsList />} />
         <Route path="/statistics" element={<Statistics />} />
         <Route path="/status" element={<StatusPage />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
 
         {/* Protected dashboard routes */}

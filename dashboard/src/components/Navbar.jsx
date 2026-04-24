@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { label: 'Commands', to: '/commands-list', external: false },
   { label: 'Status', to: '/status', external: false },
   { label: 'Statistics', to: '/statistics', external: false },
-  { label: 'Support', to: 'https://discord.gg', external: true },
+  { label: 'Support', to: '/support', external: false },
 ]
 
 export default function Navbar() {
