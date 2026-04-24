@@ -1691,7 +1691,9 @@ const WELCOMER_VARS = [
   ['{#channel}', 'Link a channel by name. Eg: {#general}'],
   ['{everyone}', '@everyone'],
   ['{here}', '@here'],
-  ['{emoji}', 'All saved welcome emojis joined together. Eg: Welcome {user}! {emoji}'],
+  ['{emoji}', 'First saved welcome emoji. Add more to get {emoji1}, {emoji2}, etc.'],
+  ['{emoji1}', 'Second saved welcome emoji (if added).'],
+  ['{emoji2}', 'Third saved welcome emoji (if added). Pattern continues for more.'],
 ]
 
 const DEFAULT_WELCOMER = {
@@ -1934,26 +1936,30 @@ function WelcomerPanel({ guildId }) {
           Welcome Emojis <span style={{ color: '#555', fontWeight: 400, textTransform: 'none', fontSize: 12 }}>({(cfg.emojis || []).length}/5 max)</span>
         </p>
         <p style={{ color: S.text2, fontSize: 12, margin: '0 0 14px' }}>
-          Add Unicode or Discord custom emojis. Use <code style={{ color: S.accent }}>{'{emoji}'}</code> in your message to place them inline, or they'll appear at the end automatically.
+          Add Unicode or Discord custom emojis. Each gets its own variable: <code style={{ color: S.accent }}>{'{' + 'emoji}'}</code> for the 1st, <code style={{ color: S.accent }}>{'{' + 'emoji1}'}</code> for the 2nd, <code style={{ color: S.accent }}>{'{' + 'emoji2}'}</code> for the 3rd, and so on. Use them individually in your welcome message.
         </p>
 
         {/* Current emojis */}
         {(cfg.emojis || []).length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
-            {(cfg.emojis || []).map((em, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: '#2a2a35', border: '1px solid #3a3a45',
-                borderRadius: 20, padding: '4px 10px 4px 12px',
-              }}>
-                <span style={{ fontSize: 18, lineHeight: 1 }}>{em}</span>
-                <button
-                  onClick={() => set({ emojis: (cfg.emojis || []).filter((_, j) => j !== i) })}
-                  style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center' }}
-                  title="Remove emoji"
-                >✕</button>
-              </div>
-            ))}
+            {(cfg.emojis || []).map((em, i) => {
+              const varName = i === 0 ? '{emoji}' : `{emoji${i}}`
+              return (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: '#2a2a35', border: '1px solid #3a3a45',
+                  borderRadius: 20, padding: '4px 10px 4px 12px',
+                }}>
+                  <span style={{ fontSize: 18, lineHeight: 1 }}>{em}</span>
+                  <code style={{ color: S.accent, fontSize: 11, fontWeight: 700 }}>{varName}</code>
+                  <button
+                    onClick={() => set({ emojis: (cfg.emojis || []).filter((_, j) => j !== i) })}
+                    style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center' }}
+                    title="Remove emoji"
+                  >✕</button>
+                </div>
+              )
+            })}
           </div>
         )}
 
@@ -1996,10 +2002,13 @@ function WelcomerPanel({ guildId }) {
         )}
 
         {(cfg.emojis || []).length > 0 && (
-          <button
-            onClick={() => set({ emojis: [] })}
-            style={{ marginTop: 10, background: 'none', border: '1px solid #444', borderRadius: 6, padding: '5px 14px', fontSize: 12, color: '#888', cursor: 'pointer' }}
-          >Clear all</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
+            <button
+              onClick={() => set({ emojis: [] })}
+              style={{ background: 'none', border: '1px solid #444', borderRadius: 6, padding: '5px 14px', fontSize: 12, color: '#888', cursor: 'pointer' }}
+            >Clear all</button>
+            <span style={{ color: '#666', fontSize: 11 }}>⚠️ Removing an emoji shifts variable names — update your message if needed.</span>
+          </div>
         )}
       </div>
 
