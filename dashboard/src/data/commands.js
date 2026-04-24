@@ -1,7 +1,8 @@
 /**
  * ALL GHOST bot commands — auto-extracted and deduplicated from source files.
- * 170 top-level commands, 214 total (including subcommands)
+ * 179 top-level commands, 223 total (including subcommands)
  * Aliases are shown on the parent command card, not as separate entries.
+ * No-prefix commands are tagged with type: "noprefix" and tracked by the dashboard.
  */
 export const ALL_COMMANDS = [
   {
@@ -296,7 +297,7 @@ export const ALL_COMMANDS = [
       "aurascan"
     ],
     "category": "Fun",
-    "type": "prefix",
+    "type": "noprefix",
     "parent": null,
     "usage": "aura"
   },
@@ -336,7 +337,7 @@ export const ALL_COMMANDS = [
     "description": "Check someone's tragic frame rate",
     "aliases": [],
     "category": "Fun",
-    "type": "hybrid",
+    "type": "noprefix",
     "parent": null,
     "usage": "fps"
   },
@@ -428,7 +429,7 @@ export const ALL_COMMANDS = [
     "description": "Measure the sodium levels",
     "aliases": [],
     "category": "Fun",
-    "type": "hybrid",
+    "type": "noprefix",
     "parent": null,
     "usage": "salt"
   },
@@ -437,7 +438,7 @@ export const ALL_COMMANDS = [
     "description": "Deploy the legendary grandmother weapon",
     "aliases": [],
     "category": "Fun",
-    "type": "hybrid",
+    "type": "noprefix",
     "parent": null,
     "usage": "slipper"
   },
@@ -469,7 +470,7 @@ export const ALL_COMMANDS = [
     "description": "Audit someone for their crimes",
     "aliases": [],
     "category": "Fun",
-    "type": "hybrid",
+    "type": "noprefix",
     "parent": null,
     "usage": "tax"
   },
@@ -932,7 +933,7 @@ export const ALL_COMMANDS = [
     "description": "",
     "aliases": [],
     "category": "Moderation",
-    "type": "group",
+    "type": "noprefix",
     "parent": null,
     "usage": "demote"
   },
@@ -1087,7 +1088,7 @@ export const ALL_COMMANDS = [
       "s"
     ],
     "category": "Moderation",
-    "type": "prefix",
+    "type": "noprefix",
     "parent": null,
     "usage": "snipe"
   },
@@ -1098,7 +1099,7 @@ export const ALL_COMMANDS = [
       "se"
     ],
     "category": "Moderation",
-    "type": "prefix",
+    "type": "noprefix",
     "parent": null,
     "usage": "snipeedit"
   },
@@ -1109,7 +1110,7 @@ export const ALL_COMMANDS = [
       "sr"
     ],
     "category": "Moderation",
-    "type": "prefix",
+    "type": "noprefix",
     "parent": null,
     "usage": "snipereact"
   },
@@ -1519,7 +1520,7 @@ export const ALL_COMMANDS = [
       "ri"
     ],
     "category": "Utility",
-    "type": "hybrid",
+    "type": "noprefix",
     "parent": null,
     "usage": "roleinfo"
   },
@@ -1994,23 +1995,104 @@ export const ALL_COMMANDS = [
     "type": "subcommand",
     "parent": "steal",
     "usage": "steal s"
+  },
+  {
+    "name": "f1",
+    "description": "Send F1 race car emojis (no-prefix trigger)",
+    "aliases": [],
+    "category": "Fun",
+    "type": "noprefix",
+    "parent": null,
+    "usage": "f1"
+  },
+  {
+    "name": "ferrari",
+    "description": "React with Ferrari emoji (no-prefix trigger)",
+    "aliases": [],
+    "category": "Fun",
+    "type": "noprefix",
+    "parent": null,
+    "usage": "ferrari"
+  },
+  {
+    "name": "bmw",
+    "description": "React with BMW emoji (no-prefix trigger)",
+    "aliases": [],
+    "category": "Fun",
+    "type": "noprefix",
+    "parent": null,
+    "usage": "bmw"
+  },
+  {
+    "name": "ramadan",
+    "description": "React with Ramadan emojis (no-prefix trigger)",
+    "aliases": [],
+    "category": "Fun",
+    "type": "noprefix",
+    "parent": null,
+    "usage": "ramadan"
+  },
+  {
+    "name": "sm",
+    "description": "Generate a song match card for you or a mentioned user",
+    "aliases": [],
+    "category": "Fun",
+    "type": "noprefix",
+    "parent": null,
+    "usage": "sm [@user]"
+  },
+  {
+    "name": "slay",
+    "description": "Manage your slay list (owner only)",
+    "aliases": [],
+    "category": "Owner",
+    "type": "noprefix",
+    "parent": null,
+    "usage": "slay [add|remove|list] [@user]"
+  },
+  {
+    "name": "demotelog",
+    "description": "View demotion history for a staff member",
+    "aliases": [],
+    "category": "Moderation",
+    "type": "noprefix",
+    "parent": null,
+    "usage": "demotelog @user [page]"
+  },
+  {
+    "name": "addstaffrole",
+    "description": "Add a role to the staff roles list for demotion tracking",
+    "aliases": [],
+    "category": "Moderation",
+    "type": "noprefix",
+    "parent": null,
+    "usage": "addstaffrole @role"
+  },
+  {
+    "name": "staffrolelist",
+    "description": "List all configured staff roles",
+    "aliases": [],
+    "category": "Moderation",
+    "type": "noprefix",
+    "parent": null,
+    "usage": "staffrolelist"
   }
 ]
 
-export const TOTAL_COMMANDS = 170
-export const TOTAL_WITH_SUBS = 214
+export const TOTAL_COMMANDS = 179
+export const TOTAL_WITH_SUBS = 223
 
 export const CATEGORIES = [
-  { id:'all',        label:'All Commands',  emoji:'🔍' },
-  { id:'Moderation', label:'Moderation',    emoji:'🛡️' },
-  { id:'Leveling',   label:'Leveling',      emoji:'⭐' },
-  { id:'Fun',        label:'Fun',           emoji:'🎉' },
-  { id:'Actions',    label:'Actions',       emoji:'💫' },
-  { id:'Utility',    label:'Utility',       emoji:'🔧' },
-  { id:'Economy',    label:'Economy',       emoji:'💰' },
-  { id:'Giveaway',   label:'Giveaway',      emoji:'🎁' },
-  { id:'Minigames',  label:'Minigames',     emoji:'🎮' },
-  { id:'Owner',      label:'Owner',         emoji:'👑' },
-  { id:'Tasks',      label:'Tasks',         emoji:'📰' },
-  { id:'Core',       label:'Core',          emoji:'⚙️' },
+  { id: 'all', label: 'All Commands', emoji: '🔍' },
+  { id: 'Moderation', label: 'Moderation', emoji: '🛡️' },
+  { id: 'Leveling', label: 'Leveling', emoji: '⭐' },
+  { id: 'Fun', label: 'Fun', emoji: '🎉' },
+  { id: 'Actions', label: 'Actions', emoji: '💫' },
+  { id: 'Utility', label: 'Utility', emoji: '🔧' },
+  { id: 'Economy', label: 'Economy', emoji: '💰' },
+  { id: 'Giveaway', label: 'Giveaway', emoji: '🎁' },
+  { id: 'Minigames', label: 'Minigames', emoji: '🎮' },
+  { id: 'Owner', label: 'Owner', emoji: '👑' },
+  { id: 'Tasks', label: 'Tasks', emoji: '📰' },
+  { id: 'Core', label: 'Core', emoji: '⚙️' },
 ]

@@ -14,30 +14,30 @@ import { ALL_COMMANDS, CATEGORIES, TOTAL_COMMANDS, TOTAL_WITH_SUBS } from '../da
 // ── Category colour map ───────────────────────────────────────────────────────
 const CAT_COLOR = {
   Moderation: '#ef4444',
-  Leveling:   '#f59e0b',
-  Fun:        '#a855f7',
-  Actions:    '#ec4899',
-  Utility:    '#3b82f6',
-  Economy:    '#22c55e',
-  Giveaway:   '#f97316',
-  Minigames:  '#06b6d4',
-  Owner:      '#540000',
-  Core:       '#6b7280',
-  Tasks:      '#6b7280',
+  Leveling: '#f59e0b',
+  Fun: '#a855f7',
+  Actions: '#ec4899',
+  Utility: '#3b82f6',
+  Economy: '#22c55e',
+  Giveaway: '#f97316',
+  Minigames: '#06b6d4',
+  Owner: '#540000',
+  Core: '#6b7280',
+  Tasks: '#6b7280',
 }
 
 // ── Single command card ───────────────────────────────────────────────────────
 function CommandCard({ cmd, config, onSave }) {
   const [expanded, setExpanded] = useState(false)
-  const [enabled,  setEnabled]  = useState(config?.enabled ?? true)
+  const [enabled, setEnabled] = useState(config?.enabled ?? true)
   const [cooldown, setCooldown] = useState(String(config?.cooldown ?? 0))
-  const [roles,    setRoles]    = useState(config?.roles ?? '[]')
-  const [saving,   setSaving]   = useState(false)
-  const [copied,   setCopied]   = useState(false)
+  const [roles, setRoles] = useState(config?.roles ?? '[]')
+  const [saving, setSaving] = useState(false)
+  const [copied, setCopied] = useState(false)
 
-  const dirty = enabled  !== (config?.enabled  ?? true)
-             || cooldown !== String(config?.cooldown ?? 0)
-             || roles    !== (config?.roles    ?? '[]')
+  const dirty = enabled !== (config?.enabled ?? true)
+    || cooldown !== String(config?.cooldown ?? 0)
+    || roles !== (config?.roles ?? '[]')
 
   const color = CAT_COLOR[cmd.category] || '#540000'
 
@@ -93,13 +93,13 @@ function CommandCard({ cmd, config, onSave }) {
             )}
             {/* Type pill */}
             <span className="text-xs px-1.5 py-0.5 rounded font-mono shrink-0" style={{
-              background: cmd.type==='slash'?'rgba(59,130,246,0.15)':cmd.type==='subcommand'?'rgba(168,85,247,0.15)':cmd.type==='group'?'rgba(245,158,11,0.15)':'rgba(84,0,0,0.15)',
-              color: cmd.type==='slash'?'#60a5fa':cmd.type==='subcommand'?'#c084fc':cmd.type==='group'?'#fbbf24':'var(--c3)',
+              background: cmd.type === 'slash' ? 'rgba(59,130,246,0.15)' : cmd.type === 'subcommand' ? 'rgba(168,85,247,0.15)' : cmd.type === 'group' ? 'rgba(245,158,11,0.15)' : cmd.type === 'noprefix' ? 'rgba(20,184,166,0.15)' : cmd.type === 'hybrid' ? 'rgba(34,197,94,0.15)' : 'rgba(84,0,0,0.15)',
+              color: cmd.type === 'slash' ? '#60a5fa' : cmd.type === 'subcommand' ? '#c084fc' : cmd.type === 'group' ? '#fbbf24' : cmd.type === 'noprefix' ? '#2dd4bf' : cmd.type === 'hybrid' ? '#4ade80' : 'var(--c3)',
             }}>
-              {cmd.type==='slash'?'/slash':cmd.type==='subcommand'?'sub':cmd.type==='group'?'group':'prefix'}
+              {cmd.type === 'slash' ? '/slash' : cmd.type === 'subcommand' ? 'sub' : cmd.type === 'group' ? 'group' : cmd.type === 'noprefix' ? 'no-prefix' : cmd.type === 'hybrid' ? 'hybrid' : 'prefix'}
             </span>
             <span className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0"
-              style={{ background:`${color}22`, color, border:`1px solid ${color}44` }}>
+              style={{ background: `${color}22`, color, border: `1px solid ${color}44` }}>
               {cmd.category}
             </span>
           </div>
@@ -223,11 +223,11 @@ function CommandCard({ cmd, config, onSave }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function Commands() {
   const { activeGuild } = useOutletContext()
-  const [configs,  setConfigs]  = useState({})
-  const [search,   setSearch]   = useState('')
+  const [configs, setConfigs] = useState({})
+  const [search, setSearch] = useState('')
   const [category, setCategory] = useState('all')
-  const [filter,   setFilter]   = useState('all')   // all | enabled | disabled
-  const [loading,  setLoading]  = useState(false)
+  const [filter, setFilter] = useState('all')   // all | enabled | disabled
+  const [loading, setLoading] = useState(false)
   const [bulkMode, setBulkMode] = useState(false)
   const [selected, setSelected] = useState(new Set())
 
@@ -241,7 +241,7 @@ export default function Commands() {
         r.data.forEach(c => { map[c.command_name] = c })
         setConfigs(map)
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false))
   }, [activeGuild])
 
@@ -266,10 +266,10 @@ export default function Commands() {
         const q = search.toLowerCase()
         const parentMatch = cmd.parent && cmd.parent.toLowerCase().includes(q)
         if (!cmd.name.includes(q) && !cmd.description.toLowerCase().includes(q)
-            && !cmd.aliases.some(a => a.includes(q)) && !parentMatch) return false
+          && !cmd.aliases.some(a => a.includes(q)) && !parentMatch) return false
       }
       const cfg = configs[cmd.name]
-      if (filter === 'enabled'  && cfg?.enabled === false) return false
+      if (filter === 'enabled' && cfg?.enabled === false) return false
       if (filter === 'disabled' && cfg?.enabled !== false) return false
       return true
     })
@@ -282,17 +282,19 @@ export default function Commands() {
       ? filtered.filter(c => selected.has(c.name))
       : filtered
     const promises = targets.map(cmd =>
-      handleSave({ command_name: cmd.name, enabled: enable,
-                   cooldown: configs[cmd.name]?.cooldown ?? 0,
-                   roles: configs[cmd.name]?.roles ?? '[]' })
+      handleSave({
+        command_name: cmd.name, enabled: enable,
+        cooldown: configs[cmd.name]?.cooldown ?? 0,
+        roles: configs[cmd.name]?.roles ?? '[]'
+      })
     )
     await Promise.allSettled(promises)
     toast.success(`${enable ? 'Enabled' : 'Disabled'} ${targets.length} commands`)
     setSelected(new Set())
   }
 
-  const totalCount    = TOTAL_WITH_SUBS
-  const enabledCount  = ALL_COMMANDS.filter(c => !c.parent && configs[c.name]?.enabled !== false).length
+  const totalCount = TOTAL_WITH_SUBS
+  const enabledCount = ALL_COMMANDS.filter(c => !c.parent && configs[c.name]?.enabled !== false).length
   const disabledCount = ALL_COMMANDS.filter(c => !c.parent && configs[c.name]?.enabled === false).length
 
   if (!activeGuild) {
@@ -321,8 +323,8 @@ export default function Commands() {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
                         border transition-colors
                         ${bulkMode
-                          ? 'bg-ghost-red/20 border-ghost-red text-white'
-                          : 'border-ghost-border text-gray-400 hover:text-white'}`}
+                ? 'bg-ghost-red/20 border-ghost-red text-white'
+                : 'border-ghost-border text-gray-400 hover:text-white'}`}
           >
             <SlidersHorizontal size={12} />
             {bulkMode ? `Bulk (${selected.size || 'all'})` : 'Bulk Edit'}
@@ -357,8 +359,8 @@ export default function Commands() {
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
                           whitespace-nowrap transition-all shrink-0
                           ${category === cat.id
-                            ? 'text-white'
-                            : 'text-gray-400 hover:text-white bg-ghost-card border border-ghost-border'}`}
+                  ? 'text-white'
+                  : 'text-gray-400 hover:text-white bg-ghost-card border border-ghost-border'}`}
               style={category === cat.id ? {
                 background: `${CAT_COLOR[cat.id] || '#540000'}22`,
                 border: `1px solid ${CAT_COLOR[cat.id] || '#540000'}66`,
@@ -426,7 +428,7 @@ export default function Commands() {
         <div className="space-y-2">
           {[...Array(10)].map((_, i) => (
             <div key={i} className="h-14 rounded-xl animate-pulse"
-                 style={{ background: 'rgba(22,24,32,0.6)' }} />
+              style={{ background: 'rgba(22,24,32,0.6)' }} />
           ))}
         </div>
       ) : (
