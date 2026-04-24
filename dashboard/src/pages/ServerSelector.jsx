@@ -6,14 +6,15 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Settings, ChevronRight, Crown, Shield, Lock, X } from 'lucide-react'
-import { getMe, getDiscordGuilds } from '../api'
+import { Search, Settings, ChevronRight, Crown, Shield, Lock } from 'lucide-react'
+import { getDiscordGuilds } from '../api'
+import Navbar from '../components/Navbar'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function guildIcon(guild) {
-  if (guild.icon)
-    return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.webp?size=512`
-  return null
+  if (!guild.icon) return null
+  const ext = guild.icon.startsWith('a_') ? 'gif' : 'png'
+  return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${ext}?size=64`
 }
 
 function guildInitials(name) {
@@ -145,7 +146,6 @@ function GuildCard({ guild, canManage, onSelect, index }) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function ServerSelector() {
-  const [user, setUser] = useState(null)
   const [guilds, setGuilds] = useState([])   // mutual guilds (bot + user)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all') // all | manageable | admin
@@ -153,8 +153,6 @@ export default function ServerSelector() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    getMe().then(r => setUser(r.data)).catch(() => { })
-
     // /auth/guilds returns ONLY mutual guilds with real user permissions
     getDiscordGuilds()
       .then(r => {
@@ -197,46 +195,9 @@ export default function ServerSelector() {
 
   const manageableCount = guilds.filter(g => g.can_manage).length
 
-  const avatarUrl = user?.avatar_url
-    || (user?.avatar && user?.sub
-      ? `https://cdn.discordapp.com/avatars/${user.sub}/${user.avatar}.png?size=64`
-      : 'https://cdn.discordapp.com/embed/avatars/0.png')
-
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
-      {/* Top bar */}
-      <header
-        className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 h-16"
-        style={{
-          background: 'rgba(13,14,17,0.95)',
-          backdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(84,0,0,0.2)',
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <img src="/ghost.png" alt="GHOST" className="w-8 h-8 rounded-lg"
-            style={{ filter: 'drop-shadow(0 0 6px rgba(84,0,0,0.8))' }} />
-          <span className="text-white font-bold text-base tracking-wide">GHOST</span>
-        </div>
-
-        {/* User pill */}
-        {user && (
-          <div className="flex items-center gap-2">
-            <img src={avatarUrl} alt={user.username}
-              className="w-8 h-8 rounded-full border"
-              style={{ borderColor: 'rgba(84,0,0,0.5)' }} />
-            <span className="text-sm text-gray-300 hidden sm:block">{user.username}</span>
-            <button
-              onClick={() => { localStorage.clear(); navigate('/login') }}
-              className="ml-2 text-gray-500 hover:text-white transition-colors p-1 rounded-lg
-                         hover:bg-ghost-red/10"
-              title="Logout"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        )}
-      </header>
+      <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 py-10">
         {/* Hero */}

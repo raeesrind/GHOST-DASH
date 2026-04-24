@@ -4,16 +4,16 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ExternalLink } from 'lucide-react'
 
 const NAV_LINKS = [
-  { label: 'Home',       to: '/',               external: false },
-  { label: 'Commands',   to: '/commands-list',  external: false },
-  { label: 'Status',     to: '/status',         external: false },
-  { label: 'Statistics', to: '/statistics',     external: false },
-  { label: 'Support',    to: 'https://discord.gg', external: true  },
+  { label: 'Home', to: '/', external: false },
+  { label: 'Commands', to: '/commands-list', external: false },
+  { label: 'Status', to: '/status', external: false },
+  { label: 'Statistics', to: '/statistics', external: false },
+  { label: 'Support', to: 'https://discord.gg', external: true },
 ]
 
 export default function Navbar() {
-  const [scrolled,    setScrolled]    = useState(false)
-  const [mobileOpen,  setMobileOpen]  = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
 
   useEffect(() => {
@@ -143,7 +143,7 @@ export default function Navbar() {
               >
                 {/* Discord icon */}
                 <svg width="16" height="16" viewBox="0 0 71 55" fill="white">
-                  <path d="M60.1 4.9A58.5 58.5 0 0 0 45.5.4a40.7 40.7 0 0 0-1.8 3.7 54.1 54.1 0 0 0-16.3 0A40.7 40.7 0 0 0 25.6.4 58.4 58.4 0 0 0 11 4.9C1.6 19.1-.9 33 .3 46.6a58.9 58.9 0 0 0 18 9.1 44.4 44.4 0 0 0 3.8-6.2 38.4 38.4 0 0 1-6-2.9l1.5-1.1a42 42 0 0 0 36 0l1.5 1.1a38.4 38.4 0 0 1-6 2.9 44.4 44.4 0 0 0 3.8 6.2 58.7 58.7 0 0 0 18-9.1C72 30.9 68.2 17.1 60.1 4.9ZM23.7 38.3c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Z"/>
+                  <path d="M60.1 4.9A58.5 58.5 0 0 0 45.5.4a40.7 40.7 0 0 0-1.8 3.7 54.1 54.1 0 0 0-16.3 0A40.7 40.7 0 0 0 25.6.4 58.4 58.4 0 0 0 11 4.9C1.6 19.1-.9 33 .3 46.6a58.9 58.9 0 0 0 18 9.1 44.4 44.4 0 0 0 3.8-6.2 38.4 38.4 0 0 1-6-2.9l1.5-1.1a42 42 0 0 0 36 0l1.5 1.1a38.4 38.4 0 0 1-6 2.9 44.4 44.4 0 0 0 3.8 6.2 58.7 58.7 0 0 0 18-9.1C72 30.9 68.2 17.1 60.1 4.9ZM23.7 38.3c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Z" />
                 </svg>
                 Invite Bot
               </motion.button>
@@ -210,7 +210,7 @@ export default function Navbar() {
                 <Link to="/login" className="flex-1">
                   <button className="w-full py-2.5 rounded-lg text-sm font-medium
                                      border transition-colors"
-                          style={{ color: 'var(--tx-2)', borderColor: 'var(--border)', background: 'transparent' }}>
+                    style={{ color: 'var(--tx-2)', borderColor: 'var(--border)', background: 'transparent' }}>
                     Login
                   </button>
                 </Link>

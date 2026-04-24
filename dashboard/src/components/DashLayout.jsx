@@ -8,21 +8,23 @@ import {
 import { getGuilds, getMe } from '../api'
 
 const NAV = [
-  { to: '/dashboard',           icon: LayoutDashboard, label: 'Overview'  },
-  { to: '/dashboard/commands',  icon: Terminal,         label: 'Commands'  },
-  { to: '/dashboard/stats',     icon: BarChart2,        label: 'Stats'     },
-  { to: '/dashboard/status',    icon: Activity,         label: 'Status'    },
-  { to: '/dashboard/settings',  icon: Settings,         label: 'Settings'  },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
+  { to: '/dashboard/commands', icon: Terminal, label: 'Commands' },
+  { to: '/dashboard/stats', icon: BarChart2, label: 'Stats' },
+  { to: '/dashboard/status', icon: Activity, label: 'Status' },
+  { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ]
 
 function GuildAvatar({ guild, size = 8 }) {
-  if (guild?.icon)
-    return <img src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.webp?size=512`}
-                alt={guild.name} className={`w-${size} h-${size} rounded-lg object-cover`} />
+  if (guild?.icon) {
+    const ext = guild.icon.startsWith('a_') ? 'gif' : 'png'
+    return <img src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${ext}?size=64`}
+      alt={guild.name} className={`w-${size} h-${size} rounded-lg object-cover`} />
+  }
   const init = (guild?.name || '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
   return (
     <div className={`w-${size} h-${size} rounded-lg flex items-center justify-center text-xs font-bold`}
-         style={{ background: 'linear-gradient(135deg, var(--c1), var(--c2))', color: 'var(--c3)' }}>
+      style={{ background: 'linear-gradient(135deg, var(--c1), var(--c2))', color: 'var(--c3)' }}>
       {init}
     </div>
   )
@@ -30,14 +32,14 @@ function GuildAvatar({ guild, size = 8 }) {
 
 export default function DashLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [guilds,      setGuilds]      = useState([])
+  const [guilds, setGuilds] = useState([])
   const [activeGuild, setActiveGuild] = useState(null)
-  const [user,        setUser]        = useState(null)
-  const [guildOpen,   setGuildOpen]   = useState(false)
+  const [user, setUser] = useState(null)
+  const [guildOpen, setGuildOpen] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
-    getMe().then(r => setUser(r.data)).catch(() => {})
+    getMe().then(r => setUser(r.data)).catch(() => { })
     getGuilds().then(r => {
       setGuilds(r.data)
       const stored = localStorage.getItem('ghost_active_guild')
@@ -47,7 +49,7 @@ export default function DashLayout() {
           setActiveGuild(r.data.find(bg => bg.id === g.id) || r.data[0] || g)
         } catch { if (r.data.length) setActiveGuild(r.data[0]) }
       } else if (r.data.length) setActiveGuild(r.data[0])
-    }).catch(() => {})
+    }).catch(() => { })
   }, [])
 
   function logout() {
@@ -57,7 +59,7 @@ export default function DashLayout() {
 
   const avatarUrl = user?.avatar_url
     || (user?.avatar && user?.sub
-      ? `https://cdn.discordapp.com/avatars/${user.sub}/${user.avatar}.png?size=64`
+      ? (() => { const ext = user.avatar.startsWith('a_') ? 'gif' : 'png'; return `https://cdn.discordapp.com/avatars/${user.sub}/${user.avatar}.${ext}?size=64` })()
       : 'https://cdn.discordapp.com/embed/avatars/0.png')
 
   return (
@@ -81,14 +83,14 @@ export default function DashLayout() {
       >
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-4 py-4"
-             style={{ borderBottom: '1px solid var(--border)' }}>
+          style={{ borderBottom: '1px solid var(--border)' }}>
           <img src="/ghost.png" alt="GHOST" className="w-8 h-8 rounded-lg"
-               style={{ filter: 'drop-shadow(0 0 6px rgba(84,0,0,0.7))' }} />
+            style={{ filter: 'drop-shadow(0 0 6px rgba(84,0,0,0.7))' }} />
           <span className="font-bold text-base tracking-wide" style={{ color: 'var(--tx-1)' }}>
             GHOST
           </span>
           <button className="ml-auto lg:hidden" style={{ color: 'var(--tx-3)' }}
-                  onClick={() => setSidebarOpen(false)}>
+            onClick={() => setSidebarOpen(false)}>
             <X size={16} />
           </button>
         </div>
@@ -108,7 +110,7 @@ export default function DashLayout() {
               {activeGuild?.name || 'Select Server'}
             </span>
             <ChevronDown size={13} className={`transition-transform ${guildOpen ? 'rotate-180' : ''}`}
-                         style={{ color: 'var(--tx-3)' }} />
+              style={{ color: 'var(--tx-3)' }} />
           </button>
 
           <AnimatePresence>
@@ -159,8 +161,8 @@ export default function DashLayout() {
         <div className="px-3 py-3" style={{ borderTop: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2.5 px-2">
             <img src={avatarUrl} alt="avatar"
-                 className="w-7 h-7 rounded-full"
-                 style={{ border: '1px solid var(--border)' }} />
+              className="w-7 h-7 rounded-full"
+              style={{ border: '1px solid var(--border)' }} />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold truncate" style={{ color: 'var(--tx-1)' }}>
                 {user?.username || '…'}
@@ -168,9 +170,9 @@ export default function DashLayout() {
               <p className="text-xs" style={{ color: 'var(--tx-3)' }}>Dashboard</p>
             </div>
             <button onClick={logout} className="btn-ghost p-1 rounded"
-                    style={{ color: 'var(--tx-3)' }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--err)'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'var(--tx-3)'}>
+              style={{ color: 'var(--tx-3)' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--err)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--tx-3)'}>
               <LogOut size={14} />
             </button>
           </div>
@@ -182,9 +184,9 @@ export default function DashLayout() {
 
         {/* Top bar */}
         <header className="flex items-center gap-3 px-4 h-14 shrink-0"
-                style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
           <button className="lg:hidden" style={{ color: 'var(--tx-3)' }}
-                  onClick={() => setSidebarOpen(true)}>
+            onClick={() => setSidebarOpen(true)}>
             <Menu size={18} />
           </button>
 
