@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ExternalLink, LogOut } from 'lucide-react'
-import { getMe } from '../api'
+import { getMe, logout as apiLogout } from '../api'
 
 const NAV_LINKS = [
   { label: 'Home', to: '/', external: false },
@@ -18,9 +18,9 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [user, setUser] = useState(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const isLoggedIn = !!localStorage.getItem('ghost_token')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -29,10 +29,8 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-    if (isLoggedIn) {
-      getMe().then(r => setUser(r.data)).catch(() => { })
-    }
-  }, [isLoggedIn])
+    getMe().then(r => { setUser(r.data); setIsLoggedIn(true) }).catch(() => { setIsLoggedIn(false) })
+  }, [])
 
   // Close mobile menu on route change
   useEffect(() => { setMobileOpen(false) }, [location.pathname])
@@ -40,8 +38,9 @@ export default function Navbar() {
   const isActive = (to) => location.pathname === to
 
   function logout() {
-    localStorage.clear()
+    apiLogout().catch(() => {})
     setUser(null)
+    setIsLoggedIn(false)
     navigate('/login')
   }
 

@@ -1,9 +1,10 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, Zap, Shield, BarChart2, Terminal, ChevronRight, LayoutDashboard } from 'lucide-react'
 import GhostScene from '../components/GhostScene'
 import Navbar from '../components/Navbar'
+import { getMe } from '../api'
 
 const FEATURES = [
   { icon: Terminal, title: 'Command Control', desc: 'Enable, disable, and configure every bot command from the dashboard.' },
@@ -20,7 +21,11 @@ const STATS = [
 ]
 
 export default function Landing() {
-  const isLoggedIn = !!localStorage.getItem('ghost_token')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    getMe().then(() => setIsLoggedIn(true)).catch(() => setIsLoggedIn(false))
+  }, [])
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', overflowX: 'hidden' }}>
       <Navbar />

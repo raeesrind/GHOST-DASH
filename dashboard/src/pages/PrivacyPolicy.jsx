@@ -178,7 +178,7 @@ const SECTIONS = [
                 </li>
                 <li className="flex items-start gap-2">
                   <ChevronRight size={14} className="mt-0.5 shrink-0" style={{ color: 'var(--c3)' }} />
-                  <span>The JWT is stored in your browser's <strong>localStorage</strong> under the key <code className="text-xs px-1 py-0.5 rounded" style={{ background: 'rgba(84,0,0,0.15)' }}>ghost_token</code>.</span>
+                  <span>The JWT is stored in an <strong>HttpOnly cookie</strong> (<code className="text-xs px-1 py-0.5 rounded" style={{ background: 'rgba(84,0,0,0.15)' }}>ghost_token</code>), making it inaccessible to JavaScript and immune to XSS token theft.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <ChevronRight size={14} className="mt-0.5 shrink-0" style={{ color: 'var(--c3)' }} />

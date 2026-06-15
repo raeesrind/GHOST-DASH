@@ -7,7 +7,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Settings, ChevronRight, Crown, Shield, Lock } from 'lucide-react'
-import { getDiscordGuilds } from '../api'
+import { getDiscordGuilds, logout as apiLogout } from '../api'
 import Navbar from '../components/Navbar'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -294,7 +294,7 @@ export default function ServerSelector() {
               No mutual servers found. Make sure GHOST is in your server and you granted the <strong>guilds</strong> scope during login.
             </p>
             <button
-              onClick={() => { localStorage.clear(); navigate('/login') }}
+              onClick={() => { apiLogout().catch(() => {}); navigate('/login') }}
               className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white"
               style={{ background: 'linear-gradient(135deg,var(--c1),var(--c2))' }}
             >

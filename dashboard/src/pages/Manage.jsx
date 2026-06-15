@@ -17,7 +17,7 @@ import {
   getAutoResponders, saveAutoResponder, deleteAutoResponder, toggleAutoResponder,
   getGiveaways, getGiveawaySettings, saveGiveawaySettings, endGiveaway, deleteGiveaway,
   getReactionRoles, saveReactionRole, deleteReactionRole, postReactionRole,
-  getMemberCheck
+  getMemberCheck, logout as apiLogout,
 } from '../api'
 import Toggle from '../components/Toggle'
 import StatCard from '../components/StatCard'
@@ -4262,7 +4262,7 @@ export default function Manage() {
             <span className="text-xs font-medium flex-1 truncate" style={{ color: 'var(--text-2)' }}>
               {user?.username || '…'}
             </span>
-            <button onClick={() => { localStorage.clear(); navigate('/login') }}
+            <button onClick={() => { apiLogout().catch(() => {}); navigate('/login') }}
               style={{ color: 'var(--text-3)' }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
               onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>

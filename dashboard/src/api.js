@@ -5,14 +5,7 @@ import axios from 'axios'
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-const api = axios.create({ baseURL: BASE })
-
-// Attach JWT from localStorage on every request
-api.interceptors.request.use((cfg) => {
-  const token = localStorage.getItem('ghost_token')
-  if (token) cfg.headers.Authorization = `Bearer ${token}`
-  return cfg
-})
+const api = axios.create({ baseURL: BASE, withCredentials: true })
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const getMe = () => api.get('/auth/me')
@@ -28,6 +21,8 @@ export function loginUrl() {
   const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
   return `${backendUrl}/auth/discord`
 }
+
+export const logout = () => api.post('/auth/logout')
 
 // Helper: build Discord avatar URL from user object
 export function avatarUrl(user) {

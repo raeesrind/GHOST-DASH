@@ -2,7 +2,7 @@ import React, { Suspense, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import GhostScene from '../components/GhostScene'
-import { loginUrl } from '../api'
+import { loginUrl, getMe } from '../api'
 
 const DISCORD_ICON = (
   <svg width="18" height="18" viewBox="0 0 71 55" fill="white">
@@ -23,7 +23,7 @@ export default function Login() {
   const error = searchParams.get('error')
 
   useEffect(() => {
-    if (localStorage.getItem('ghost_token')) navigate('/servers', { replace: true })
+    getMe().then(() => navigate('/servers', { replace: true })).catch(() => {})
   }, [])
 
   return (

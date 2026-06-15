@@ -18,23 +18,18 @@ import Support from './pages/Support'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import DashLayout from './components/DashLayout'
+import { getMe } from './api'
 
 function AuthCallback() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const token = params.get('token')
     const error = params.get('error')
 
     if (error) {
       window.location.href = '/login?error=' + error
       return
     }
-    if (!token) {
-      window.location.href = '/login'
-      return
-    }
 
-    localStorage.setItem('ghost_token', token)
     window.location.href = '/servers'
   }, [])
   return (
@@ -51,8 +46,27 @@ function AuthCallback() {
 }
 
 function RequireAuth({ children }) {
-  const token = localStorage.getItem('ghost_token')
-  return token ? children : <Navigate to="/login" replace />
+  const [ok, setOk] = useState(null)
+
+  useEffect(() => {
+    getMe().then(() => setOk(true)).catch(() => setOk(false))
+  }, [])
+
+  if (ok === null) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-ghost-dark gap-4">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-10 h-10 rounded-full border-2 border-t-transparent"
+          style={{ borderColor: '#540000', borderTopColor: 'transparent' }}
+        />
+        <p className="text-gray-400 text-sm">Checking authentication...</p>
+      </div>
+    )
+  }
+
+  return ok ? children : <Navigate to="/login" replace />
 }
 
 export default function App() {

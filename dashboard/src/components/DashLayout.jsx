@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Terminal, BarChart2, Activity,
   Settings, LogOut, Menu, X, ChevronDown, Server, Bell,
 } from 'lucide-react'
-import { getGuilds, getMe } from '../api'
+import { getGuilds, getMe, logout as apiLogout } from '../api'
 
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
@@ -53,7 +53,7 @@ export default function DashLayout() {
   }, [])
 
   function logout() {
-    localStorage.clear()
+    apiLogout().catch(() => {})
     navigate('/login')
   }
 
