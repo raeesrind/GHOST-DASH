@@ -9,6 +9,8 @@ const NAV_LINKS = [
   { label: 'Commands', to: '/commands-list', external: false },
   { label: 'Status', to: '/status', external: false },
   { label: 'Statistics', to: '/statistics', external: false },
+  { label: 'Privacy', to: '/privacy-policy', external: false },
+  { label: 'Terms', to: '/terms', external: false },
   { label: 'Support', to: '/support', external: false },
 ]
 

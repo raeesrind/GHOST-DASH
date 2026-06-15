@@ -15,6 +15,8 @@ import Stats from './pages/Stats'
 import Status from './pages/Status'
 import Settings from './pages/Settings'
 import Support from './pages/Support'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
 import DashLayout from './components/DashLayout'
 
 function AuthCallback() {
@@ -67,6 +69,8 @@ export default function App() {
         <Route path="/statistics" element={<Statistics />} />
         <Route path="/status" element={<StatusPage />} />
         <Route path="/support" element={<Support />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
 
         {/* Protected dashboard routes */}

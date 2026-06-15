@@ -155,7 +155,11 @@ export default function Landing() {
       {/* ── Footer ── */}
       <footer className="py-6 text-center text-xs" style={{ borderTop: '1px solid var(--border)', color: 'var(--tx-3)' }}>
         <img src="/ghost.png" alt="GHOST" className="w-5 h-5 inline-block mr-2 opacity-40" />
-        GHOST Bot Dashboard © {new Date().getFullYear()}
+        GHOST Bot Dashboard &copy; {new Date().getFullYear()}
+        <span className="mx-2 opacity-30">|</span>
+        <Link to="/privacy-policy" className="hover:underline" style={{ color: 'var(--tx-3)' }}>Privacy Policy</Link>
+        <span className="mx-2 opacity-30">|</span>
+        <Link to="/terms" className="hover:underline" style={{ color: 'var(--tx-3)' }}>Terms of Service</Link>
       </footer>
     </div>
   )

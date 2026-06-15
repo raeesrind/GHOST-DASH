@@ -5,6 +5,7 @@
 import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X, Hash } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { ALL_COMMANDS, CATEGORIES, TOTAL_COMMANDS, TOTAL_WITH_SUBS } from '../data/commands'
 
@@ -272,6 +273,10 @@ export default function CommandsList() {
       >
         <img src="/ghost.png" alt="GHOST" className="w-5 h-5 inline-block mr-2 opacity-40" />
         GHOST Bot · {totalUnique} commands · {new Date().getFullYear()}
+        <span className="mx-2 opacity-30">|</span>
+        <Link to="/privacy-policy" className="hover:underline text-gray-600">Privacy Policy</Link>
+        <span className="mx-2 opacity-30">|</span>
+        <Link to="/terms" className="hover:underline text-gray-600">Terms of Service</Link>
       </footer>
     </div>
   )
