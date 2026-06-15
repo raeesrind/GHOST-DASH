@@ -53,7 +53,7 @@ const SECTIONS = [
           <ul className="space-y-1.5 pl-4">
             <li className="flex items-start gap-2">
               <ChevronRight size={14} className="mt-0.5 shrink-0" style={{ color: 'var(--c3)' }} />
-              <span><strong>Snipe data:</strong> The last 50 deleted messages, edited messages (before/after content), and removed reactions per channel are stored temporarily in <code className="text-xs px-1 py-0.5 rounded" style={{ background: 'rgba(84,0,0,0.15)' }}>moderation.db</code>. Data is auto-pruned as new snipes replace old ones.</span>
+              <span><strong>Snipe data:</strong> The last 50 deleted messages, edited messages (before/after content), and removed reactions per channel are stored temporarily in a local database. Data is auto-pruned as new snipes replace old ones.</span>
             </li>
             <li className="flex items-start gap-2">
               <ChevronRight size={14} className="mt-0.5 shrink-0" style={{ color: 'var(--c3)' }} />
@@ -224,32 +224,7 @@ const SECTIONS = [
       <div className="space-y-4 leading-relaxed" style={{ color: 'var(--tx-2)', fontSize: 15 }}>
         <div className="rounded-xl p-5 space-y-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
           <h4 className="font-semibold" style={{ color: 'var(--tx-1)' }}>Storage Infrastructure</h4>
-          <p>All data is stored in <strong>SQLite database files</strong> located on the bot's hosting server. The bot uses 13 separate SQLite databases for different feature modules:</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-            {[
-              'ghost.db (XP, economy, aura, slay list)',
-              'moderation.db (warnings, bans, mutes, jail, snipes, notes)',
-              'utility.db (prefix, disabled commands, AI config)',
-              'welcomer.db (welcome message settings)',
-              'automod.db (AutoMod rules)',
-              'action_log.db (logging channel config)',
-              'custom_commands.db (custom commands)',
-              'autoresponder.db (auto responders)',
-              'reaction_roles.db (reaction role config)',
-              'giveaways.db (giveaways, entries, invites)',
-              'moderation_settings.db (mod settings)',
-              'classpoints.db (class points system)',
-              'protect_data.db (ping protection)',
-              'afk_data.db (AFK status)',
-              'demotions.db (staff demotions)',
-              'dashboard.db (guild info, command logs, bot status)',
-            ].map(db => (
-              <div key={db} className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg" style={{ background: 'rgba(84,0,0,0.08)', color: 'var(--tx-2)' }}>
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--c3)' }} />
-                {db}
-              </div>
-            ))}
-          </div>
+          <p>All data is stored in <strong>SQLite database files</strong> located on the bot's hosting server. Data is stored across multiple SQLite databases categorized by feature module (economy, moderation, utility, logging, and more).</p>
         </div>
 
         <div className="rounded-xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
@@ -358,7 +333,7 @@ const SECTIONS = [
           <ul className="space-y-3">
             <li className="flex items-start gap-2">
               <ChevronRight size={14} className="mt-0.5 shrink-0" style={{ color: 'var(--c3)' }} />
-              <div><strong>Bot-to-backend communication</strong> is authenticated via a shared secret key (<code className="text-xs px-1 py-0.5 rounded" style={{ background: 'rgba(84,0,0,0.15)' }}>X-Bot-Key</code> header).</div>
+              <div><strong>Bot-to-backend communication</strong> is authenticated via a private API key.</div>
             </li>
             <li className="flex items-start gap-2">
               <ChevronRight size={14} className="mt-0.5 shrink-0" style={{ color: 'var(--c3)' }} />
